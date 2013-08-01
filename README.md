@@ -1,4 +1,4 @@
-silex-oauth
-===========
+gigablah/silex-oauth
+====================
 
-Silex provider for lusitanian/oauth.
+Silex provider for lusitanian/oauth. Work in progress.

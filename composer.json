@@ -1,0 +1,23 @@
+{
+    "name": "gigablah/silex-oauth",
+    "description": "Silex OAuth Authentication Provider",
+    "keywords": ["silex", "oauth"],
+    "homepage": "https://github.com/gigablah/silex-oauth",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chris Heng",
+            "email": "bigblah@gmail.com"
+        }
+    ],
+    "require": {
+        "lusitanian/oauth": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Gigablah\\Silex\\OAuth": ["src/"]
+        }
+    },
+    "minimum-stability": "dev"
+}
