@@ -24,31 +24,33 @@ use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 /**
  * Authentication listener handling OAuth Authentication responses.
  *
- * @author Gigablah <gigablah@vgmdb.net>
+ * @author Chris Heng <bigblah@gmail.com>
  */
 class OAuthAuthenticationListener extends AbstractAuthenticationListener
 {
-    private $oauthService;
-    private $csrfProvider;
-    private $trustResolver;
-    private $token;
+    protected $oauthServiceFactory;
+    protected $csrfProvider;
+    protected $trustResolver;
+    protected $token;
     protected $httpUtils;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceInterface $oauthService, AuthenticationTrustResolverInterface $trustResolver, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
+    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, \Closure $oauthServiceFactory, AuthenticationTrustResolverInterface $trustResolver, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
     {
         parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
+            'login_route'    => '_auth_service',
+            'check_route'    => '_auth_service_check',
             'csrf_parameter' => '_csrf_token',
             'intention'      => 'oauth',
             'post_only'      => false,
         ), $options), $logger, $dispatcher);
-        $this->oauthService    = $oauthService;
-        $this->csrfProvider    = $csrfProvider;
-        $this->trustResolver   = $trustResolver;
-        $this->token           = $securityContext->getToken();
-        $this->httpUtils       = $httpUtils;
+        $this->oauthServiceFactory = $oauthServiceFactory;
+        $this->csrfProvider        = $csrfProvider;
+        $this->trustResolver       = $trustResolver;
+        $this->token               = $securityContext->getToken();
+        $this->httpUtils           = $httpUtils;
     }
 
     /**
@@ -56,14 +58,19 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      */
     protected function requiresAuthentication(Request $request)
     {
-        if ($this->httpUtils->checkRequestPath($request, $this->options['login_path'])) {
+        if ($this->httpUtils->checkRequestPath($request, $this->options['login_route'])) {
             if ($this->options['post_only'] && !$request->isMethod('post')) {
                 return false;
             }
+
             return true;
         }
 
-        return parent::requiresAuthentication($request);
+        if ($this->httpUtils->checkRequestPath($request, $this->options['check_route'])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -71,8 +78,12 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      */
     protected function attemptAuthentication(Request $request)
     {
-        // redirect to auth provider
-        if ($this->httpUtils->checkRequestPath($request, $this->options['login_path'])) {
+        $oauthServiceFactory = $this->oauthServiceFactory;
+        $service = $request->attributes->get('service');
+        $oauthService = $oauthServiceFactory($service);
+
+        // redirect to auth provider if initiating
+        if ($this->httpUtils->checkRequestPath($request, $this->options['login_route'])) {
             if ($this->options['post_only'] && !$request->isMethod('post')) {
                 if (null !== $this->logger) {
                     $this->logger->debug(sprintf('Authentication method not supported: %s.', $request->getMethod()));
@@ -90,40 +101,53 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             }
 
             $authorizationParameters = array();
-            if ($this->oauthService instanceof OAuth1ServiceInterface) {
-                $token = $this->oauthService->requestRequestToken();
+            if ($oauthService instanceof OAuth1ServiceInterface) {
+                $token = $oauthService->requestRequestToken();
                 $authorizationParameters = array(
                     'oauth_token' => $token->getRequestToken()
                 );
             }
-            $authorizationUri = $this->oauthService->getAuthorizationUri($authorizationParameters);
+            $authorizationUri = $oauthService->getAuthorizationUri($authorizationParameters);
 
             return $this->httpUtils->createRedirectResponse($request, $authorizationUri->getAbsoluteUri());
         }
 
-        $accessToken = $this->oauthService->getStorage()->retrieveAccessToken($this->oauthService->service());
+        $accessToken = $oauthService->getStorage()->retrieveAccessToken(preg_replace('/^.*\\\\/', '', get_class($oauthService)));
 
-        if (false === $rawUserInfo = json_decode($this->oauthService->request($this->options['userinfo']['uri']), true)) {
+        if (false === $rawUserInfo = json_decode($oauthService->request($this->options['services'][$service]['user_endpoint']), true)) {
             throw new AuthenticationException('User information could not be retrieved.');
         }
 
         $userInfo = array();
-        foreach ($this->options['userinfo']['fields'] as $key => $field) {
-            $userInfo[$key] = isset($rawUserInfo[$field]) ? $rawUserInfo[$field] : null;
-        }
+        $fieldMap = array(
+            'id' => array('id', null),
+            'name' => array('name', 'username', 'screen_name', null),
+            'email' => array('email', function ($data, $service) {
+                if ('twitter' === $service) {
+                    return $data['screen_name'] . '@twitter.com';
+                }
+            })
+        );
 
-        if (!$userInfo['name']) {
-            $userInfo['name'] = $userInfo['id'];
-        }
-        if (!$userInfo['email']) {
-            $userInfo['email'] = str_replace(' ', '', $userInfo['name']) . '@' . $this->options['provider'] . '.com';
+        foreach ($fieldMap as $key => $fields) {
+            $userInfo[$key] = null;
+            foreach ($fields as $field) {
+                if (is_callable($field)) {
+                    $userInfo[$key] = $field($rawUserInfo, $service);
+                    break;
+                }
+                if (isset($rawUserInfo[$field])) {
+                    $userInfo[$key] = $rawUserInfo[$field];
+                    break;
+                }
+            }
         }
 
         $authToken = new OAuthToken($this->providerKey);
         $authToken->setUser($userInfo['name']);
         $authToken->setAccessToken($accessToken);
-        $authToken->setProvider($this->options['provider']);
-        $authToken->setProviderId($userInfo['id']);
+        $authToken->setService($service);
+        $authToken->setUid($userInfo['id']);
 
         try {
             return $this->authenticationManager->authenticate($authToken);

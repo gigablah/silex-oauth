@@ -12,7 +12,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 /**
  * Authentication provider handling OAuth Authentication responses.
  *
- * @author Gigablah <gigablah@vgmdb.net>
+ * @author Chris Heng <bigblah@gmail.com>
  */
 class OAuthAuthenticationProvider implements AuthenticationProviderInterface
 {
@@ -36,7 +36,7 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
             return null;
         }
 
-        $user = $this->userProvider->loadUserByOAuthCredentials($token->getProvider(), $token->getProviderId());
+        $user = $this->userProvider->loadUserByOAuthCredentials($token);
 
         if (!$user) {
             throw new BadCredentialsException('No user found for given credentials.');

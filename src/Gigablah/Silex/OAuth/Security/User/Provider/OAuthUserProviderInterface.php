@@ -2,22 +2,23 @@
 
 namespace Gigablah\Silex\OAuth\Security\User\Provider;
 
+use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * OAuth user provider interface.
  *
- * @author Gigablah <gigablah@vgmdb.net>
+ * @author Chris Heng <bigblah@gmail.com>
  */
 interface OAuthUserProviderInterface extends UserProviderInterface
 {
     /**
-     * Loads a user based on OAuth provider and uid.
+     * Loads a user based on OAuth credentials.
      *
-     * @param string $provider
-     * @param string $providerId
+     * @param OAuthTokenInterface $token
      *
      * @return UserInterface|null
      */
-    public function loadUserByOAuthCredentials($provider, $providerId);
+    public function loadUserByOAuthCredentials(OAuthTokenInterface $token);
 }

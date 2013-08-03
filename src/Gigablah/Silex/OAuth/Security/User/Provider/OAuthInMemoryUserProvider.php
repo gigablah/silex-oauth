@@ -3,13 +3,14 @@
 namespace Gigablah\Silex\OAuth\Security\User\Provider;
 
 use Gigablah\Silex\OAuth\Security\User\StubOAuthUser;
+use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * OAuth in-memory stub user provider.
  *
- * @author Gigablah <gigablah@vgmdb.net>
+ * @author Chris Heng <bigblah@gmail.com>
  */
 class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
 {
@@ -45,15 +46,23 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function loadUserByOAuthCredentials($provider, $providerId)
+    public function loadUserByOAuthCredentials(OAuthTokenInterface $token)
     {
+        $credentials = array(
+            'service' => $token->getService(),
+            'uid' => $token->getUid()
+        );
+
         foreach ($this->users as $user) {
-            if ($user->hasOAuthCredentials($provider, $providerId)) {
+            if ($user->hasOAuthCredentials($credentials)) {
                 return $user;
             }
         }
 
-        return null;
+        $user = new StubOAuthUser($token->getUsername(), '', array('ROLE_USER'), true, true, true, true);
+        $user->setOAuthCredentials(array($credentials));
+
+        return $user;
     }
 
     /**

@@ -3,17 +3,17 @@
 namespace Gigablah\Silex\OAuth\Security\Authentication\Token;
 
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
-use OAuth\Common\Token\TokenInterface;
+use OAuth\Common\Token\TokenInterface as AccessTokenInterface;
 
 /**
  * Token for OAuth Authentication responses.
  *
- * @author Gigablah <gigablah@vgmdb.net>
+ * @author Chris Heng <bigblah@gmail.com>
  */
-class OAuthToken extends AbstractToken
+class OAuthToken extends AbstractToken implements OAuthTokenInterface
 {
-    protected $provider;
-    protected $providerId;
+    protected $service;
+    protected $uid;
     protected $accessToken;
     protected $providerKey;
 
@@ -32,29 +32,44 @@ class OAuthToken extends AbstractToken
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCredentials()
     {
         return $this->accessToken->getAccessToken();
     }
 
-    public function getProvider()
+    /**
+     * {@inheritdoc}
+     */
+    public function getService()
     {
-        return $this->provider;
+        return $this->service;
     }
 
-    public function setProvider($provider)
+    /**
+     * {@inheritdoc}
+     */
+    public function setService($service)
     {
-        $this->provider = $provider;
+        $this->service = $service;
     }
 
-    public function getProviderId()
+    /**
+     * {@inheritdoc}
+     */
+    public function getUid()
     {
-        return $this->providerId;
+        return $this->uid;
     }
 
-    public function setProviderId($providerId)
+    /**
+     * {@inheritdoc}
+     */
+    public function setUid($uid)
     {
-        $this->providerId = $providerId;
+        $this->uid = $uid;
     }
 
     public function getAccessToken()
@@ -62,7 +77,7 @@ class OAuthToken extends AbstractToken
         return $this->accessToken;
     }
 
-    public function setAccessToken(TokenInterface $accessToken)
+    public function setAccessToken(AccessTokenInterface $accessToken)
     {
         $this->accessToken = $accessToken;
     }
@@ -74,12 +89,12 @@ class OAuthToken extends AbstractToken
 
     public function serialize()
     {
-        return serialize(array($this->provider, $this->providerId, $this->accessToken, $this->providerKey, parent::serialize()));
+        return serialize(array($this->service, $this->uid, $this->accessToken, $this->providerKey, parent::serialize()));
     }
 
     public function unserialize($str)
     {
-        list($this->provider, $this->providerId, $this->accessToken, $this->providerKey, $parentStr) = unserialize($str);
+        list($this->service, $this->uid, $this->accessToken, $this->providerKey, $parentStr) = unserialize($str);
 
         parent::unserialize($parentStr);
     }
