@@ -4,7 +4,7 @@ namespace Gigablah\Silex\OAuth;
 
 use Gigablah\Silex\OAuth\Security\Firewall\OAuthAuthenticationListener;
 use Gigablah\Silex\OAuth\Security\Authentication\Provider\OAuthAuthenticationProvider;
-use Gigablah\Silex\OAuth\EventListener\UserApiListener;
+use Gigablah\Silex\OAuth\EventListener\UserInfoListener;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -54,8 +54,8 @@ class OAuthServiceProvider implements ServiceProviderInterface
             );
         });
 
-        $app['oauth.user_api_listener'] = $app->share(function ($app) {
-            return new UserApiListener($app['oauth'], $app['oauth.services']);
+        $app['oauth.user_info_listener'] = $app->share(function ($app) {
+            return new UserInfoListener($app['oauth'], $app['oauth.services']);
         });
 
         $app['oauth.controller'] = $app->protect(function (Request $request, $service) use ($app) {
@@ -130,7 +130,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
                 }
 
                 $oauthServiceRegistry = $app['oauth'];
-                $app['dispatcher']->addSubscriber($app['oauth.user_api_listener']);
+                $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
 
                 return new OAuthAuthenticationListener(
                     $app['security'],

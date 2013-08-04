@@ -12,7 +12,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * @author Chris Heng <bigblah@gmail.com>
  */
-class UserApiListener implements EventSubscriberInterface
+class UserInfoListener implements EventSubscriberInterface
 {
     private $registry;
     private $config;

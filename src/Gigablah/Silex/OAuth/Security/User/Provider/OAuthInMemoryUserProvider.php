@@ -23,6 +23,8 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
      */
     public function __construct(array $users = array())
     {
+        $this->users = array();
+
         foreach ($users as $username => $attributes) {
             $this->users[$username] = new StubOAuthUser($username, '', (array) $attributes['roles'], true, true, true, true);
             $this->users[$username]->setOAuthCredentials($attributes['credentials']);
