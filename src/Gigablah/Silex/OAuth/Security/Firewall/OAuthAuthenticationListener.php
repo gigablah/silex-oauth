@@ -2,6 +2,9 @@
 
 namespace Gigablah\Silex\OAuth\Security\Firewall;
 
+use Gigablah\Silex\OAuth\OAuthServiceRegistry;
+use Gigablah\Silex\OAuth\OAuthEvents;
+use Gigablah\Silex\OAuth\Event\FilterTokenEvent;
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthToken;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,7 +14,6 @@ use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolverInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
@@ -30,14 +32,10 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 {
     protected $oauthServiceFactory;
     protected $csrfProvider;
-    protected $trustResolver;
-    protected $token;
-    protected $httpUtils;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, \Closure $oauthServiceFactory, AuthenticationTrustResolverInterface $trustResolver, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
+    private $dispatcher;
+
+    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
     {
         parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
             'login_route'    => '_auth_service',
@@ -46,11 +44,9 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             'intention'      => 'oauth',
             'post_only'      => false,
         ), $options), $logger, $dispatcher);
-        $this->oauthServiceFactory = $oauthServiceFactory;
-        $this->csrfProvider        = $csrfProvider;
-        $this->trustResolver       = $trustResolver;
-        $this->token               = $securityContext->getToken();
-        $this->httpUtils           = $httpUtils;
+        $this->registry     = $registry;
+        $this->csrfProvider = $csrfProvider;
+        $this->dispatcher   = $dispatcher;
     }
 
     /**
@@ -78,9 +74,8 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      */
     protected function attemptAuthentication(Request $request)
     {
-        $oauthServiceFactory = $this->oauthServiceFactory;
         $service = $request->attributes->get('service');
-        $oauthService = $oauthServiceFactory($service);
+        $oauthService = $this->registry->getService($service);
 
         // redirect to auth provider if initiating
         if ($this->httpUtils->checkRequestPath($request, $this->options['login_route'])) {
@@ -112,53 +107,13 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             return $this->httpUtils->createRedirectResponse($request, $authorizationUri->getAbsoluteUri());
         }
 
-        $accessToken = $oauthService->getStorage()->retrieveAccessToken(preg_replace('/^.*\\\\/', '', get_class($oauthService)));
-
-        if (false === $rawUserInfo = json_decode($oauthService->request($this->options['services'][$service]['user_endpoint']), true)) {
-            throw new AuthenticationException('User information could not be retrieved.');
-        }
-
-        $userInfo = array();
-        $fieldMap = array(
-            'id' => array('id', null),
-            'name' => array('name', 'username', 'screen_name', null),
-            'email' => array('email', function ($data, $service) {
-                if ('twitter' === $service) {
-                    return $data['screen_name'] . '@twitter.com';
-                }
-            })
-        );
-
-        foreach ($fieldMap as $key => $fields) {
-            $userInfo[$key] = null;
-            foreach ($fields as $field) {
-                if (is_callable($field)) {
-                    $userInfo[$key] = $field($rawUserInfo, $service);
-                    break;
-                }
-                if (isset($rawUserInfo[$field])) {
-                    $userInfo[$key] = $rawUserInfo[$field];
-                    break;
-                }
-            }
-        }
-
         $authToken = new OAuthToken($this->providerKey);
-        $authToken->setUser($userInfo['name']);
-        $authToken->setAccessToken($accessToken);
         $authToken->setService($service);
-        $authToken->setUid($userInfo['id']);
 
-        try {
-            return $this->authenticationManager->authenticate($authToken);
-        } catch (BadCredentialsException $e) {
-            $user = $this->token && !$this->trustResolver->isAnonymous($token) ? $this->token->getUser() : null;
-
-            // @todo: use dispatcher to dispatch process user event
-            // $user = $this->userManipulator->createOrFindByEmail($info['name'], $info['email']);
-            // $this->userManipulator->addAuthProvider($user, $authToken->getProvider(), $authToken->getProviderId());
-
-            return $this->authenticationManager->authenticate($authToken);
+        if (null !== $this->dispatcher) {
+            $this->dispatcher->dispatch(OAuthEvents::TOKEN, new FilterTokenEvent($authToken));
         }
+
+        return $this->authenticationManager->authenticate($authToken);
     }
 }

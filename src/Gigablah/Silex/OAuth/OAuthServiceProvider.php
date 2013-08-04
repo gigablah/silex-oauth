@@ -4,13 +4,13 @@ namespace Gigablah\Silex\OAuth;
 
 use Gigablah\Silex\OAuth\Security\Firewall\OAuthAuthenticationListener;
 use Gigablah\Silex\OAuth\Security\Authentication\Provider\OAuthAuthenticationProvider;
+use Gigablah\Silex\OAuth\EventListener\UserApiListener;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use OAuth\ServiceFactory;
-use OAuth\Common\Consumer\Credentials;
 use OAuth\Common\Storage\SymfonySession;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 
@@ -44,31 +44,23 @@ class OAuthServiceProvider implements ServiceProviderInterface
             return new SymfonySession($app['session']);
         });
 
-        $app['oauth'] = $app->protect(function ($service) use ($app) {
-            if (!isset($app['oauth.services']) || !isset($app['oauth.services'][$service])) {
-                throw new \InvalidArgumentException(sprintf('OAuth configuration not defined for the "%s" service.', $service));
-            }
-
-            $credentials = new Credentials(
-                $app['oauth.services'][$service]['key'],
-                $app['oauth.services'][$service]['secret'],
-                $app['url_generator']->generate($app['oauth.callback_route'], array(
-                    'service' => $service
-                ), true)
+        $app['oauth'] = $app->share(function ($app) {
+            return new OAuthServiceRegistry(
+                $app['oauth.factory'],
+                $app['oauth.storage'],
+                $app['url_generator'],
+                $app['oauth.services'],
+                array('callback_route' => $app['oauth.callback_route'])
             );
+        });
 
-            $scope = isset($app['oauth.services'][$service]['scope'])
-                ? $app['oauth.services'][$service]['scope']
-                : array();
-
-            $oauthService = $app['oauth.factory']->createService($service, $credentials, $app['oauth.storage'], $scope);
-
-            return $oauthService;
+        $app['oauth.user_api_listener'] = $app->share(function ($app) {
+            return new UserApiListener($app['oauth'], $app['oauth.services']);
         });
 
         $app['oauth.controller'] = $app->protect(function (Request $request, $service) use ($app) {
             try {
-                $oauthService = $app['oauth']($service);
+                $oauthService = $app['oauth']->getService($service);
             } catch (\Exception $e) {
                 throw new NotFoundHttpException();
             }
@@ -137,7 +129,8 @@ class OAuthServiceProvider implements ServiceProviderInterface
                     $app['security.authentication.failure_handler.'.$name.'.oauth'] = $app['security.authentication.failure_handler._proto']($name, $options);
                 }
 
-                $options['services'] = $app['oauth.services'];
+                $oauthServiceRegistry = $app['oauth'];
+                $app['dispatcher']->addSubscriber($app['oauth.user_api_listener']);
 
                 return new OAuthAuthenticationListener(
                     $app['security'],
@@ -145,8 +138,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
                     $app['security.session_strategy'],
                     $app['security.http_utils'],
                     $name,
-                    $app['oauth'],
-                    $app['security.trust_resolver'],
+                    $oauthServiceRegistry,
                     $app['security.authentication.success_handler.'.$name.'.oauth'],
                     $app['security.authentication.failure_handler.'.$name.'.oauth'],
                     $options,
@@ -162,7 +154,8 @@ class OAuthServiceProvider implements ServiceProviderInterface
                 return new OAuthAuthenticationProvider(
                     $app['security.user_provider.'.$name],
                     $app['security.user_checker'],
-                    $name
+                    $name,
+                    $app['dispatcher']
                 );
             });
         });
