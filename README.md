@@ -89,7 +89,7 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
                 'logout_path' => '/logout',
                 'with_csrf' => true
             ),
-            'users' => new Gigablah\Silex\OAuth\Security\User\Provider\OAuthInMemoryUserProvider(array())
+            'users' => new Gigablah\Silex\OAuth\Security\User\Provider\OAuthInMemoryUserProvider()
         )
     ),
     'security.access_rules' => array(
@@ -114,7 +114,7 @@ $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($
 
 $app->get('/login', function () use ($app) {
     $token = $app['form.csrf_provider']->generateCsrfToken('oauth');
-    $services = array('facebook', 'twitter', 'google', 'github');
+    $services = array_keys($app['oauth.services']);
 
     return $app['twig']->render('index.twig', array(
         'login_paths' => array_map(function ($service) use ($app, $token) {
