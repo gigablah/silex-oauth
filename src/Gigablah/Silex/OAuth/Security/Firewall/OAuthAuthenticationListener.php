@@ -35,6 +35,22 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 
     private $dispatcher;
 
+    /**
+     * Constructor.
+     *
+     * @param SecurityContextInterface               $securityContext
+     * @param AuthenticationManagerInterface         $authenticationManager
+     * @param SessionAuthenticationStrategyInterface $sessionStrategy
+     * @param HttpUtils                              $httpUtils
+     * @param string                                 $providerKey
+     * @param OAuthServiceRegistry                   $registry
+     * @param AuthenticationSuccessHandlerInterface  $successHandler
+     * @param AuthenticationFailureHandlerInterface  $failureHandler
+     * @param array                                  $options
+     * @param LoggerInterface                        $logger
+     * @param EventDispatcherInterface               $dispatcher
+     * @param CsrfProviderInterface                  $csrfProvider
+     */
     public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
     {
         parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(

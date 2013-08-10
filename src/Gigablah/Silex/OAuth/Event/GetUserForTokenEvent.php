@@ -5,6 +5,7 @@ namespace Gigablah\Silex\OAuth\Event;
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * Allows retrieval of a user based on OAuth token credentials.
@@ -15,6 +16,7 @@ class GetUserForTokenEvent extends Event
 {
     private $token;
     private $user;
+    private $userProvider;
 
     public function __construct(OAuthTokenInterface $token)
     {
@@ -39,5 +41,15 @@ class GetUserForTokenEvent extends Event
     public function getUser()
     {
         return $this->user;
+    }
+
+    public function setUserProvider(UserProviderInterface $userProvider)
+    {
+        $this->userProvider = $userProvider;
+    }
+
+    public function getUserProvider()
+    {
+        return $this->userProvider;
     }
 }

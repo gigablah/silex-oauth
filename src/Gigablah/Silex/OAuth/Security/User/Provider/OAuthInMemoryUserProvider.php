@@ -2,7 +2,7 @@
 
 namespace Gigablah\Silex\OAuth\Security\User\Provider;
 
-use Gigablah\Silex\OAuth\Security\User\StubOAuthUser;
+use Gigablah\Silex\OAuth\Security\User\StubUser;
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -15,20 +15,35 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
 {
     private $users;
+    private $credentials;
 
     /**
      * Constructor.
      *
-     * @param array $users An array of users
+     * @param array $users       An array of users
+     * @param array $credentials A map of usernames with
      */
-    public function __construct(array $users = array())
+    public function __construct(array $users = array(), array $credentials = array())
     {
-        $this->users = array();
-
         foreach ($users as $username => $attributes) {
-            $this->users[$username] = new StubOAuthUser($username, '', (array) $attributes['roles'], true, true, true, true);
-            $this->users[$username]->setOAuthCredentials($attributes['credentials']);
+            $password = isset($attributes['password']) ? $attributes['password'] : null;
+            $email = isset($attributes['email']) ? $attributes['email'] : null;
+            $enabled = isset($attributes['enabled']) ? $attributes['enabled'] : true;
+            $roles = isset($attributes['roles']) ? (array) $attributes['roles'] : array();
+            $user = new StubUser($username, $password, $email, $roles, $enabled, true, true, true);
+            $this->createUser($user);
         }
+
+        $this->credentials = $credentials;
+    }
+
+    public function createUser(UserInterface $user)
+    {
+        if (isset($this->users[strtolower($user->getUsername())])) {
+            throw new \LogicException('Another user with the same username already exist.');
+        }
+
+        $this->users[strtolower($user->getUsername())] = $user;
     }
 
     /**
@@ -36,13 +51,14 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        if (isset($this->users[$username])) {
-            $user = $this->users[$username];
+        if (isset($this->users[strtolower($username)])) {
+            $user = $this->users[strtolower($username)];
         } else {
-            $user = new StubOAuthUser($username, '', array('ROLE_USER'), true, true, true, true);
+            $user = new StubUser($username, '', $username . '@example.org', array('ROLE_USER'), true, true, true, true);
+            $this->createUser($user);
         }
 
-        return new StubOAuthUser($user->getUsername(), $user->getPassword(), $user->getRoles(), $user->isEnabled(), $user->isAccountNonExpired(), $user->isCredentialsNonExpired(), $user->isAccountNonLocked());
+        return new StubUser($user->getUsername(), $user->getPassword(), $user->getEmail(), $user->getRoles(), $user->isEnabled(), $user->isAccountNonExpired(), $user->isCredentialsNonExpired(), $user->isAccountNonLocked());
     }
 
     /**
@@ -50,19 +66,16 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
      */
     public function loadUserByOAuthCredentials(OAuthTokenInterface $token)
     {
-        $credentials = array(
-            'service' => $token->getService(),
-            'uid' => $token->getUid()
-        );
-
-        foreach ($this->users as $user) {
-            if ($user->hasOAuthCredentials($credentials)) {
-                return $user;
+        foreach ($this->credentials as $username => $credentials) {
+            foreach ($credentials as $credential) {
+                if ($credential['service'] == $token->getService() && $credential['uid'] == $token->getUid()) {
+                    return $this->loadUserByUsername($username);
+                }
             }
         }
 
-        $user = new StubOAuthUser($token->getUsername(), '', array('ROLE_USER'), true, true, true, true);
-        $user->setOAuthCredentials(array($credentials));
+        $user = new StubUser($token->getUsername(), '', $token->getEmail(), array('ROLE_USER'), true, true, true, true);
+        $this->createUser($user);
 
         return $user;
     }
@@ -72,7 +85,7 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
      */
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof StubOAuthUser) {
+        if (!$user instanceof StubUser) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
 
@@ -84,6 +97,6 @@ class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
      */
     public function supportsClass($class)
     {
-        return $class === 'Gigablah\\Silex\\OAuth\\Security\\User\\StubOAuthUser';
+        return $class === 'Gigablah\\Silex\\OAuth\\Security\\User\\StubUser';
     }
 }

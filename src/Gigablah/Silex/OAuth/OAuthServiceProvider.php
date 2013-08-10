@@ -5,6 +5,7 @@ namespace Gigablah\Silex\OAuth;
 use Gigablah\Silex\OAuth\Security\Firewall\OAuthAuthenticationListener;
 use Gigablah\Silex\OAuth\Security\Authentication\Provider\OAuthAuthenticationProvider;
 use Gigablah\Silex\OAuth\EventListener\UserInfoListener;
+use Gigablah\Silex\OAuth\EventListener\UserProviderListener;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,6 +59,10 @@ class OAuthServiceProvider implements ServiceProviderInterface
             return new UserInfoListener($app['oauth'], $app['oauth.services']);
         });
 
+        $app['oauth.user_provider_listener'] = $app->share(function ($app) {
+            return new UserProviderListener();
+        });
+
         $app['oauth.controller'] = $app->protect(function (Request $request, $service) use ($app) {
             try {
                 $oauthService = $app['oauth']->getService($service);
@@ -66,7 +71,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
             }
 
             if ($oauthService instanceof OAuth1ServiceInterface) {
-                $token = $oauthService->getStorage()->retrieveAccessToken(preg_replace('/^.*\\\\/', '', get_class($oauthService)));
+                $token = $oauthService->getStorage()->retrieveAccessToken(OAuthServiceRegistry::getServiceName($oauthService));
                 $oauthService->requestAccessToken(
                     $request->query->get('oauth_token'),
                     $request->query->get('oauth_verifier'),
@@ -130,7 +135,6 @@ class OAuthServiceProvider implements ServiceProviderInterface
                 }
 
                 $oauthServiceRegistry = $app['oauth'];
-                $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
 
                 return new OAuthAuthenticationListener(
                     $app['security'],
@@ -168,9 +172,12 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
             $app->$method($pattern, $callback)->bind($name);
         }
+
+        $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
+        $app['dispatcher']->addSubscriber($app['oauth.user_provider_listener']);
     }
 
-    public function addRoute($method, $pattern, $callback, $name)
+    protected function addRoute($method, $pattern, $callback, $name)
     {
         $this->routes[] = array($method, $pattern, $callback, $name);
     }

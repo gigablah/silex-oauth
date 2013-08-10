@@ -14,18 +14,25 @@ class OAuthToken extends AbstractToken implements OAuthTokenInterface
 {
     protected $service;
     protected $uid;
+    protected $email;
     protected $accessToken;
     protected $providerKey;
 
+    /**
+     * Constructor.
+     *
+     * @param string $providerKey
+     * @param array  $roles
+     */
     public function __construct($providerKey, array $roles = array())
     {
-        parent::__construct($roles);
-
         if (empty($providerKey)) {
             throw new \InvalidArgumentException('$providerKey must not be empty.');
         }
 
         $this->providerKey = $providerKey;
+
+        parent::__construct($roles);
 
         if ($roles) {
             $this->setAuthenticated(true);
@@ -70,6 +77,16 @@ class OAuthToken extends AbstractToken implements OAuthTokenInterface
     public function setUid($uid)
     {
         $this->uid = $uid;
+    }
+
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    public function setEmail($email)
+    {
+        $this->email = $email;
     }
 
     public function getAccessToken()

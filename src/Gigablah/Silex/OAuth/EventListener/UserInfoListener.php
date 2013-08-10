@@ -17,29 +17,40 @@ class UserInfoListener implements EventSubscriberInterface
     private $registry;
     private $config;
 
+    /**
+     * Constructor.
+     *
+     * @param OAuthServiceRegistry $registry
+     * @param array                $config
+     */
     public function __construct(OAuthServiceRegistry $registry, array $config = array())
     {
         $this->registry = $registry;
         $this->config = $config;
     }
 
+    /**
+     * When the security token is created, populate it with user information from the service API.
+     *
+     * @param FilterTokenEvent $event
+     */
     public function onFilterToken(FilterTokenEvent $event)
     {
         $token = $event->getToken();
-        $oauthService = $this->registry->getService($token->getService());
+        $service = $token->getService();
+        $oauthService = $this->registry->getService($service);
+        $accessToken = $oauthService->getStorage()->retrieveAccessToken(OAuthServiceRegistry::getServiceName($oauthService));
 
-        $accessToken = $oauthService->getStorage()->retrieveAccessToken(preg_replace('/^.*\\\\/', '', get_class($oauthService)));
-
-        if (false === $rawUserInfo = json_decode($oauthService->request($this->config[$token->getService()]['user_endpoint']), true)) {
+        if (false === $rawUserInfo = json_decode($oauthService->request($this->config[$service]['user_endpoint']), true)) {
             return;
         }
 
         $userInfo = array();
         $fieldMap = array(
-            'id' => array('id', null),
-            'name' => array('name', 'username', 'screen_name', null),
-            'email' => array('email', function ($data, $service) {
-                if ('twitter' === $service) {
+            'id' => array('id'),
+            'name' => array('name', 'username', 'screen_name'),
+            'email' => array('email', function ($data, $provider) {
+                if ('twitter' === $provider) {
                     return $data['screen_name'] . '@twitter.com';
                 }
             })
@@ -49,7 +60,7 @@ class UserInfoListener implements EventSubscriberInterface
             $userInfo[$key] = null;
             foreach ($fields as $field) {
                 if (is_callable($field)) {
-                    $userInfo[$key] = $field($rawUserInfo, $token->getService());
+                    $userInfo[$key] = $field($rawUserInfo, $service);
                     break;
                 }
                 if (isset($rawUserInfo[$field])) {
@@ -60,10 +71,14 @@ class UserInfoListener implements EventSubscriberInterface
         }
 
         $token->setUser($userInfo['name']);
+        $token->setEmail($userInfo['email']);
         $token->setAccessToken($accessToken);
         $token->setUid($userInfo['id']);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function getSubscribedEvents()
     {
         return array(

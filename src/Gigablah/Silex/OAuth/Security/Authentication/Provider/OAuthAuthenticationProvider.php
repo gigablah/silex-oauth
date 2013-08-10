@@ -3,9 +3,10 @@
 namespace Gigablah\Silex\OAuth\Security\Authentication\Provider;
 
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthToken;
-use Gigablah\Silex\OAuth\Security\User\Provider\OAuthUserProviderInterface;
 use Gigablah\Silex\OAuth\OAuthEvents;
 use Gigablah\Silex\OAuth\Event\GetUserForTokenEvent;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
@@ -24,12 +25,20 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
     private $userChecker;
     private $providerKey;
 
-    public function __construct(OAuthUserProviderInterface $userProvider, UserCheckerInterface $userChecker, $providerKey, EventDispatcherInterface $dispatcher = null)
+    /**
+     * Constructor.
+     *
+     * @param UserProviderInterface    $userProvider
+     * @param UserCheckerInterface     $userChecker
+     * @param string                   $providerKey
+     * @param EventDispatcherInterface $dispatcher
+     */
+    public function __construct(UserProviderInterface $userProvider, UserCheckerInterface $userChecker, $providerKey, EventDispatcherInterface $dispatcher = null)
     {
-        $this->userProvider  = $userProvider;
-        $this->userChecker   = $userChecker;
-        $this->providerKey   = $providerKey;
-        $this->dispatcher    = $dispatcher;
+        $this->userProvider = $userProvider;
+        $this->userChecker  = $userChecker;
+        $this->providerKey  = $providerKey;
+        $this->dispatcher   = $dispatcher;
     }
 
     /**
@@ -41,15 +50,17 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
             return null;
         }
 
-        $user = $this->userProvider->loadUserByOAuthCredentials($token);
+        $user = $token->getUser();
 
-        if (!$user && null !== $this->dispatcher) {
+        if (!$user instanceof UserInterface && null !== $this->dispatcher) {
             $event = new GetUserForTokenEvent($token);
+            $event->setUserProvider($this->userProvider);
             $this->dispatcher->dispatch(OAuthEvents::USER, $event);
-            $user = $event->getUser();
+
+            $user = $event->getToken()->getUser();
         }
 
-        if (!$user) {
+        if (!$user instanceof UserInterface) {
             throw new BadCredentialsException('No user found for given credentials.');
         }
 

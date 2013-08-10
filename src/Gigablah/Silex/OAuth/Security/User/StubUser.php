@@ -5,22 +5,22 @@ namespace Gigablah\Silex\OAuth\Security\User;
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 
 /**
- * Stub OAuth user class for testing.
+ * Stub user class for testing.
  *
  * @author Chris Heng <bigblah@gmail.com>
  */
-class StubOAuthUser implements AdvancedUserInterface
+class StubUser implements AdvancedUserInterface
 {
     private $username;
     private $password;
+    private $email;
     private $enabled;
     private $accountNonExpired;
     private $credentialsNonExpired;
     private $accountNonLocked;
     private $roles;
-    private $oauthCredentials;
 
-    public function __construct($username, $password, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
+    public function __construct($username, $password, $email, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
         if (empty($username)) {
             throw new \InvalidArgumentException('The username cannot be empty.');
@@ -28,33 +28,22 @@ class StubOAuthUser implements AdvancedUserInterface
 
         $this->username = $username;
         $this->password = $password;
+        $this->email = $email;
         $this->enabled = $enabled;
         $this->accountNonExpired = $userNonExpired;
         $this->credentialsNonExpired = $credentialsNonExpired;
         $this->accountNonLocked = $userNonLocked;
         $this->roles = $roles;
-        $this->oauthCredentials = array();
     }
 
-    public function setOAuthCredentials(array $oauthCredentials)
+    /**
+     * Gets the user email.
+     *
+     * @return string
+     */
+    public function getEmail()
     {
-        $this->oauthCredentials = $oauthCredentials;
-    }
-
-    public function addOAuthCredentials(array $oauthCredentials)
-    {
-        $this->oauthCredentials = array_merge($this->oauthCredentials, $oauthCredentials);
-    }
-
-    public function hasOAuthCredentials(array $oauthCredentials)
-    {
-        foreach ($this->oauthCredentials as $credentials) {
-            if ($credentials == $oauthCredentials) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->email;
     }
 
     /**
