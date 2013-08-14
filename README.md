@@ -100,7 +100,7 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
 
 Note that the library assumes the default login/check paths to be `/auth/{service}` and `/auth/{service}/check` respectively, so `/auth` needs to be secured. You can uncomment the path options and change the defaults.
 
-You will need to configure each of your OAuth providers with the correct `callback_path`. For example, the default callback for Facebook would be `/login/facebook/callback`.
+You will need to configure each of your OAuth providers with the correct absolute `callback_path`. For example, the default callback for Facebook would be `http://your.domain/login/facebook/callback`.
 
 Finally, you can provide a login/logout interface. This example assumes usage of the [Twig][5] templating engine:
 
