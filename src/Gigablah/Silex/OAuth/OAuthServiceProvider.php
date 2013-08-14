@@ -22,15 +22,8 @@ use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
  */
 class OAuthServiceProvider implements ServiceProviderInterface
 {
-    protected $routes;
-
     public function register(Application $app)
     {
-        // used to register routes for oauth entry point and callbacks
-        $this->routes = array();
-
-        $that = $this;
-
         $app['oauth.login_route'] = '_auth_service';
         $app['oauth.callback_route'] = '_auth_service_callback';
         $app['oauth.check_route'] = '_auth_service_check';
@@ -105,26 +98,26 @@ class OAuthServiceProvider implements ServiceProviderInterface
             );
         });
 
-        $app['security.authentication_listener.oauth._proto'] = $app->protect(function ($name, $options) use ($app, $that) {
-            return $app->share(function () use ($app, $name, $options, $that) {
-                $that->addRoute(
-                    'match',
+        $app['security.authentication_listener.oauth._proto'] = $app->protect(function ($name, $options) use ($app) {
+            return $app->share(function () use ($app, $name, $options) {
+                $options['login_route'] = $app['oauth.login_route'];
+                $options['callback_route'] = $app['oauth.callback_route'];
+                $options['check_route'] = $app['oauth.check_route'];
+
+                $app->match(
                     isset($options['login_path']) ? $options['login_path'] : '/auth/{service}',
-                    function () {},
-                    $options['login_route'] = $app['oauth.login_route']
-                );
-                $that->addRoute(
-                    'get',
+                    function () {}
+                )->bind($options['login_route']);
+
+                $app->get(
                     isset($options['callback_path']) ? $options['callback_path'] : '/login/{service}/callback',
-                    $app['oauth.controller'],
-                    $options['callback_route'] = $app['oauth.callback_route']
-                );
-                $that->addRoute(
-                    'get',
+                    $app['oauth.controller']
+                )->bind($options['callback_route']);
+
+                $app->get(
                     isset($options['check_path']) ? $options['check_path'] : '/auth/{service}/check',
-                    function () {},
-                    $options['check_route'] = $app['oauth.check_route']
-                );
+                    function () {}
+                )->bind($options['check_route']);
 
                 if (!isset($app['security.authentication.success_handler.'.$name.'.oauth'])) {
                     $app['security.authentication.success_handler.'.$name.'.oauth'] = $app['security.authentication.success_handler._proto']($name, $options);
@@ -167,12 +160,6 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
     public function boot(Application $app)
     {
-        foreach ($this->routes as $route) {
-            list($method, $pattern, $callback, $name) = $route;
-
-            $app->$method($pattern, $callback)->bind($name);
-        }
-
         $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
         $app['dispatcher']->addSubscriber($app['oauth.user_provider_listener']);
     }
