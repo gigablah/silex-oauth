@@ -5,6 +5,7 @@ namespace Gigablah\Silex\OAuth\Security\User\Provider;
 use Gigablah\Silex\OAuth\Security\User\StubUser;
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -12,7 +13,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  *
  * @author Chris Heng <bigblah@gmail.com>
  */
-class OAuthInMemoryUserProvider implements OAuthUserProviderInterface
+class OAuthInMemoryUserProvider implements UserProviderInterface, OAuthUserProviderInterface
 {
     private $users;
     private $credentials;
