@@ -115,14 +115,13 @@ $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($
 });
 
 $app->get('/login', function () use ($app) {
-    $token = $app['form.csrf_provider']->generateCsrfToken('oauth');
     $services = array_keys($app['oauth.services']);
 
     return $app['twig']->render('index.twig', array(
         'login_paths' => array_map(function ($service) use ($app, $token) {
             return $app['url_generator']->generate('_auth_service', array(
                 'service' => $service,
-                '_csrf_token' => $token
+                '_csrf_token' => $app['form.csrf_provider']->generateCsrfToken('oauth')
             ));
         }, array_combine($services, $services)),
         'logout_path' => $app['url_generator']->generate('logout', array(
@@ -158,7 +157,26 @@ Two default event listeners are registered by default:
 * `UserInfoListener` executes right after an OAuth access token is successfully generated. The security token is then populated with user profile information from the configured API endpoint.
 * `UserProviderListener` executes at the point where the authentication provider queries for a user object from the user provider.
 
-Depending on your application, you might want to automatically register OAuth users who do not already have an existing user account. This can be done by overriding `UserProviderListener` and placing your registration code in the listener function.
+Depending on your application, you might want to automatically register OAuth users who do not already have an existing user account. This can be done by overriding `UserProviderListener` and placing your registration code in the listener function, or by simply registering a separate listener in the chain.
+
+Custom Services
+---------------
+
+You can register your own services or override existing ones by manually specifying the class to instantiate:
+
+```php
+$app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
+    'oauth.services' => array(
+        'my_service' => array(
+            'class' => 'My\\Custom\\Namespace\\MyOAuthService',
+            'key' => MY_API_KEY,
+            'secret' => MY_API_SECRET,
+            'scope' => array(),
+            'user_endpoint' => 'https://my.domain/userinfo'
+        ),
+        // ...
+    )
+));
 
 License
 -------

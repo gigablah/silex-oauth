@@ -92,6 +92,11 @@ class OAuthServiceRegistry
 
         $scope = isset($this->config[$service]['scope']) ? $this->config[$service]['scope'] : array();
 
+        if (isset($this->config[$service]['class'])) {
+            $this->oauthServiceFactory->registerService($service, $this->config[$service]['class']);
+            unset($this->config[$service]['class']);
+        }
+
         return $this->oauthServiceFactory->createService(
             $service,
             $credentials,
