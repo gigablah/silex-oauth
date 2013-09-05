@@ -177,6 +177,7 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
         // ...
     )
 ));
+```
 
 License
 -------
