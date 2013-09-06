@@ -40,11 +40,15 @@ class OAuthServiceProvider implements ServiceProviderInterface
             return new SymfonySession($app['session']);
         });
 
+        $app['oauth.url_generator'] = $app->share(function ($app) {
+            return $app['url_generator'];
+        });
+
         $app['oauth'] = $app->share(function ($app) {
             return new OAuthServiceRegistry(
                 $app['oauth.factory'],
                 $app['oauth.storage'],
-                $app['url_generator'],
+                $app['oauth.url_generator'],
                 $app['oauth.services'],
                 array('callback_route' => $app['oauth.callback_route'])
             );
