@@ -40,6 +40,7 @@ class UserInfoListener implements EventSubscriberInterface
         $service = $token->getService();
         $oauthService = $this->registry->getService($service);
         $accessToken = $oauthService->getStorage()->retrieveAccessToken(OAuthServiceRegistry::getServiceName($oauthService));
+        $token->setAccessToken($accessToken);
 
         if (false === $rawUserInfo = json_decode($oauthService->request($this->config[$service]['user_endpoint']), true)) {
             return;
@@ -72,7 +73,6 @@ class UserInfoListener implements EventSubscriberInterface
 
         $token->setUser($userInfo['name']);
         $token->setEmail($userInfo['email']);
-        $token->setAccessToken($accessToken);
         $token->setUid($userInfo['id']);
     }
 

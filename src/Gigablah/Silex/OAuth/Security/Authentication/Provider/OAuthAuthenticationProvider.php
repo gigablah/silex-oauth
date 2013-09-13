@@ -67,6 +67,9 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
         $this->userChecker->checkPostAuth($user);
 
         $authenticatedToken = new OAuthToken($this->providerKey, $user->getRoles());
+        $authenticatedToken->setAccessToken($token->getAccessToken());
+        $authenticatedToken->setService($token->getService());
+        $authenticatedToken->setUid($token->getUid());
         $authenticatedToken->setAuthenticated(true);
         $authenticatedToken->setUser($user);
 
