@@ -5,6 +5,7 @@ namespace Gigablah\Silex\OAuth;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use OAuth\ServiceFactory;
 use OAuth\Common\Consumer\Credentials;
+use OAuth\Common\Http\Uri\Uri;
 use OAuth\Common\Service\ServiceInterface;
 use OAuth\Common\Storage\TokenStorageInterface;
 
@@ -91,6 +92,7 @@ class OAuthServiceRegistry
         );
 
         $scope = isset($this->config[$service]['scope']) ? $this->config[$service]['scope'] : array();
+        $uri = isset($this->config[$service]['uri']) ? new Uri($this->config[$service]['uri']) : null;
 
         if (isset($this->config[$service]['class'])) {
             $this->oauthServiceFactory->registerService($service, $this->config[$service]['class']);
@@ -101,7 +103,8 @@ class OAuthServiceRegistry
             $service,
             $credentials,
             $this->oauthStorage,
-            $scope
+            $scope,
+            $uri
         );
     }
 }
