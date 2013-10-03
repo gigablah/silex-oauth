@@ -135,7 +135,8 @@ class OAuthServiceProvider implements ServiceProviderInterface
                     $app['security.authentication.failure_handler.'.$name.'.oauth'] = $app['security.authentication.failure_handler._proto']($name, $options);
                 }
 
-                $oauthServiceRegistry = $app['oauth'];
+                $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
+                $app['dispatcher']->addSubscriber($app['oauth.user_provider_listener']);
 
                 return new OAuthAuthenticationListener(
                     $app['security'],
@@ -143,7 +144,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
                     $app['security.session_strategy'],
                     $app['security.http_utils'],
                     $name,
-                    $oauthServiceRegistry,
+                    $app['oauth'],
                     $app['security.authentication.success_handler.'.$name.'.oauth'],
                     $app['security.authentication.failure_handler.'.$name.'.oauth'],
                     $options,
@@ -168,7 +169,5 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
     public function boot(Application $app)
     {
-        $app['dispatcher']->addSubscriber($app['oauth.user_info_listener']);
-        $app['dispatcher']->addSubscriber($app['oauth.user_provider_listener']);
     }
 }
