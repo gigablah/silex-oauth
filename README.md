@@ -23,8 +23,7 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
         "silex/silex": "~1.0",
         "symfony/form": "~2.3",
         "symfony/security": "~2.3",
-        "lusitanian/oauth": "dev-master",
-        "gigablah/silex-oauth": "dev-master"
+        "gigablah/silex-oauth": "~0.0.1"
     }
 }
 ```
@@ -185,7 +184,7 @@ License
 Released under the MIT license. See the LICENSE file for details.
 
 [1]: https://github.com/Lusitanian/PHPoAuthLib
-[2]: http://silex.sensiolabs.org/doc/providers/security.html 
+[2]: http://silex.sensiolabs.org/doc/providers/security.html
 [3]: http://silex.sensiolabs.org
 [4]: http://getcomposer.org
 [5]: http://twig.sensiolabs.org/

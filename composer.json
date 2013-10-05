@@ -12,12 +12,11 @@
         }
     ],
     "require": {
-        "lusitanian/oauth": "dev-master"
+        "lusitanian/oauth": ">=0.2.3, <0.5"
     },
     "autoload": {
         "psr-0": {
             "Gigablah\\Silex\\OAuth": ["src/"]
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
