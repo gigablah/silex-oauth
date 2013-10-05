@@ -4,6 +4,7 @@ namespace Gigablah\Silex\OAuth;
 
 use Gigablah\Silex\OAuth\Security\Firewall\OAuthAuthenticationListener;
 use Gigablah\Silex\OAuth\Security\Authentication\Provider\OAuthAuthenticationProvider;
+use Gigablah\Silex\OAuth\Storage\SymfonySession;
 use Gigablah\Silex\OAuth\EventListener\UserInfoListener;
 use Gigablah\Silex\OAuth\EventListener\UserProviderListener;
 use Silex\Application;
@@ -11,8 +12,9 @@ use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use OAuth\ServiceFactory;
-use OAuth\Common\Storage\SymfonySession;
+use OAuth\Common\Http\Client\CurlClient;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 
 /**
@@ -32,8 +34,15 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
         $app['oauth.services'] = array();
 
+        $app['oauth.http_client'] = $app->share(function ($app) {
+            return new CurlClient();
+        });
+
         $app['oauth.factory'] = $app->share(function ($app) {
-            return new ServiceFactory();
+            $factory = new ServiceFactory();
+            $factory->setHttpClient($app['oauth.http_client']);
+
+            return $factory;
         });
 
         $app['oauth.storage'] = $app->share(function ($app) {
@@ -60,32 +69,6 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
         $app['oauth.user_provider_listener'] = $app->share(function ($app) {
             return new UserProviderListener();
-        });
-
-        $app['oauth.controller'] = $app->protect(function (Request $request, $service) use ($app) {
-            try {
-                $oauthService = $app['oauth']->getService($service);
-            } catch (\Exception $e) {
-                throw new NotFoundHttpException();
-            }
-
-            if ($oauthService instanceof OAuth1ServiceInterface) {
-                $token = $oauthService->getStorage()->retrieveAccessToken(OAuthServiceRegistry::getServiceName($oauthService));
-                $oauthService->requestAccessToken(
-                    $request->query->get('oauth_token'),
-                    $request->query->get('oauth_verifier'),
-                    $token->getRequestTokenSecret()
-                );
-            } else {
-                $oauthService->requestAccessToken(
-                    $request->query->get('code')
-                );
-            }
-
-            // the access token is now stored in the session, redirect back to check_path
-            return new RedirectResponse($app['url_generator']->generate($app['oauth.check_route'], array(
-                'service' => $service
-            ), true), 302);
         });
 
         $app['security.authentication_listener.factory.oauth'] = $app->protect(function ($name, $options) use ($app) {
@@ -117,8 +100,8 @@ class OAuthServiceProvider implements ServiceProviderInterface
                     )->bind($options['login_route']);
 
                     $app->get(
-                        isset($options['callback_path']) ? $options['callback_path'] : '/login/{service}/callback',
-                        $app['oauth.controller']
+                        isset($options['callback_path']) ? $options['callback_path'] : '/auth/{service}/callback',
+                        function () {}
                     )->bind($options['callback_route']);
 
                     $app->get(

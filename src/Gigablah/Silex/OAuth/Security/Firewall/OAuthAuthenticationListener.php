@@ -15,11 +15,11 @@ use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterfa
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
+use OAuth\Common\Storage\Exception\StorageException;
 use OAuth\Common\Service\ServiceInterface as OAuthServiceInterface;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 
@@ -78,6 +78,10 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             return true;
         }
 
+        if ($this->httpUtils->checkRequestPath($request, $this->options['callback_route'])) {
+            return true;
+        }
+
         if ($this->httpUtils->checkRequestPath($request, $this->options['check_route'])) {
             return true;
         }
@@ -121,6 +125,45 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             $authorizationUri = $oauthService->getAuthorizationUri($authorizationParameters);
 
             return $this->httpUtils->createRedirectResponse($request, $authorizationUri->getAbsoluteUri());
+        }
+
+        // request access token upon callback
+        if ($this->httpUtils->checkRequestPath($request, $this->options['callback_route'])) {
+            if ($request->query->has('error')) {
+                throw new AuthenticationException($request->query->get('error_description', $request->query->get('error')));
+            }
+
+            if ($oauthService instanceof OAuth1ServiceInterface) {
+                try {
+                    $token = $oauthService->getStorage()->retrieveAccessToken(OAuthServiceRegistry::getServiceName($oauthService));
+                } catch (StorageException $exception) {
+                    throw new AuthenticationException('Could not retrieve access token.', null, $exception);
+                }
+
+                if (!$request->query->has('oauth_token') || !$request->query->has('oauth_verifier')) {
+                    throw new AuthenticationException('Token parameters missing.');
+                }
+
+                $oauthService->requestAccessToken(
+                    $request->query->get('oauth_token'),
+                    $request->query->get('oauth_verifier'),
+                    $token->getRequestTokenSecret()
+                );
+            } else {
+                if (!$request->query->has('code')) {
+                    throw new AuthenticationException('Token parameters missing.');
+                }
+
+                $oauthService->requestAccessToken(
+                    $request->query->get('code')
+                );
+            }
+
+            // the access token is now stored in the session, redirect back to check_path
+            return $this->httpUtils->createRedirectResponse(
+                $request,
+                $this->options['check_route']
+            );
         }
 
         $authToken = new OAuthToken($this->providerKey);
