@@ -9,13 +9,8 @@ use Gigablah\Silex\OAuth\EventListener\UserInfoListener;
 use Gigablah\Silex\OAuth\EventListener\UserProviderListener;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use OAuth\ServiceFactory;
 use OAuth\Common\Http\Client\CurlClient;
-use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 
 /**
  * OAuth client authentication library.
