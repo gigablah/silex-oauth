@@ -70,7 +70,13 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
 Next, register the `oauth` authentication provider in your firewall.
 
 ```php
-$app->register(new Silex\Provider\FormServiceProvider()); // for CSRF tokens
+// Provides CSRF token generation
+$app->register(new Silex\Provider\FormServiceProvider());
+
+// Provides session storage
+$app->register(new Silex\Provider\SessionServiceProvider(), array(
+    'session.storage.save_path' => '/path/to/sessions'
+))
 
 $app->register(new Silex\Provider\SecurityServiceProvider(), array(
     'security.firewalls' => array(
