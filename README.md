@@ -70,6 +70,9 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
 Next, register the `oauth` authentication provider in your firewall.
 
 ```php
+// Provides URL generation
+$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
+
 // Provides CSRF token generation
 $app->register(new Silex\Provider\FormServiceProvider());
 
@@ -110,6 +113,11 @@ You will need to configure each of your OAuth providers with the correct absolut
 Finally, you can provide a login/logout interface. This example assumes usage of the [Twig][5] templating engine:
 
 ```php
+// Provides Twig template engine
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => '/path/to/templates'
+));
+
 $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($app) {
     $token = $app['security']->getToken();
     $app['user'] = null;
@@ -123,7 +131,7 @@ $app->get('/login', function () use ($app) {
     $services = array_keys($app['oauth.services']);
 
     return $app['twig']->render('index.twig', array(
-        'login_paths' => array_map(function ($service) use ($app, $token) {
+        'login_paths' => array_map(function ($service) use ($app) {
             return $app['url_generator']->generate('_auth_service', array(
                 'service' => $service,
                 '_csrf_token' => $app['form.csrf_provider']->generateCsrfToken('oauth')
@@ -142,15 +150,17 @@ The template itself:
 
 ```
 <div>
-    {% if app.user %}
+  {% if app.user %}
     <p>Hello {{ app.user.username }}! Your email is {{ app.user.email }}</p>
     <a href="{{ logout_path }}">Logout</a>
-    {% else %}
-    <a href="{{ login_paths.facebook }}">Login with Facebook</a>
-    <a href="{{ login_paths.twitter }}">Login with Twitter</a>
-    <a href="{{ login_paths.google }}">Login with Google</a>
-    <a href="{{ login_paths.github }}">Login with GitHub</a>
-    {% endif %}
+  {% else %}
+    <ul>
+      <li><a href="{{ login_paths.facebook }}">Login with Facebook</a></li>
+      <li><a href="{{ login_paths.twitter }}">Login with Twitter</a></li>
+      <li><a href="{{ login_paths.google }}">Login with Google</a></li>
+      <li><a href="{{ login_paths.github }}">Login with GitHub</a></li>
+    </ul>
+  {% endif %}
 </div>
 ```
 
