@@ -51,7 +51,7 @@ class UserInfoListener implements EventSubscriberInterface
         $userInfo = array();
         $fieldMap = array(
             'id' => array('id'),
-            'name' => array('name', 'username', 'screen_name'),
+            'name' => array('name', 'username', 'screen_name', 'login'),
             'email' => array('email', function ($data, $provider) {
                 if ('twitter' === $provider) {
                     return $data['screen_name'] . '@twitter.com';
