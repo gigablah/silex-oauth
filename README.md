@@ -67,6 +67,26 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
 ));
 ```
 
+Some oauth services, like dropbox, have different fields in their response (which will generate a php warning if you use the default UserListener for token generation), you can work around it like this:
+
+```php
+$app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
+    'oauth.services' => array(
+        'dropbox' => array(
+            'key' => DROPBOX_API_KEY,
+            'secret' => DROPBOX_API_SECRET,
+            'user_endpoint' => '/account/info',
+            'mapper' => function($result) {
+                return [
+                    'name'  => $result['display_name'],
+                    'id'    => $result['uid'],
+                    'email' => $result['email']
+                ];
+            }
+        )
+));
+```
+
 Next, register the `oauth` authentication provider in your firewall.
 
 ```php
