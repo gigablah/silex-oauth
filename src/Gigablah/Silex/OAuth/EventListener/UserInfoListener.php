@@ -43,32 +43,38 @@ class UserInfoListener implements EventSubscriberInterface
         $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService)?$oauthService->service():OAuthServiceRegistry::getServiceName($oauthService);
         $accessToken = $oauthService->getStorage()->retrieveAccessToken($serviceName);
         $token->setAccessToken($accessToken);
+        
+        $config = $this->config[$service];
 
-        if (false === $rawUserInfo = json_decode($oauthService->request($this->config[$service]['user_endpoint']), true)) {
+        if (false === $rawUserInfo = json_decode($oauthService->request($config['user_endpoint']), true)) {
             return;
         }
 
         $userInfo = array();
-        $fieldMap = array(
-            'id' => array('id'),
-            'name' => array('name', 'username', 'screen_name', 'login'),
-            'email' => array('email', function ($data, $provider) {
-                if ('twitter' === $provider) {
-                    return $data['screen_name'] . '@twitter.com';
-                }
-            })
-        );
-
-        foreach ($fieldMap as $key => $fields) {
-            $userInfo[$key] = null;
-            foreach ($fields as $field) {
-                if (is_callable($field)) {
-                    $userInfo[$key] = $field($rawUserInfo, $service);
-                    break;
-                }
-                if (isset($rawUserInfo[$field])) {
-                    $userInfo[$key] = $rawUserInfo[$field];
-                    break;
+        if (isset($config['mapper'])) {
+            $userInfo = call_user_func($config['mapper'], $rawUserInfo);
+        } else {
+            $fieldMap = array(
+                'id' => array('id'),
+                'name' => array('name', 'username', 'screen_name', 'login'),
+                'email' => array('email', function ($data, $provider) {
+                    if ('twitter' === $provider) {
+                        return $data['screen_name'] . '@twitter.com';
+                    }
+                })
+            );
+    
+            foreach ($fieldMap as $key => $fields) {
+                $userInfo[$key] = null;
+                foreach ($fields as $field) {
+                    if (is_callable($field)) {
+                        $userInfo[$key] = $field($rawUserInfo, $service);
+                        break;
+                    }
+                    if (isset($rawUserInfo[$field])) {
+                        $userInfo[$key] = $rawUserInfo[$field];
+                        break;
+                    }
                 }
             }
         }
