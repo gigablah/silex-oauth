@@ -61,7 +61,8 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             'key' => GITHUB_API_KEY,
             'secret' => GITHUB_API_SECRET,
             'scope' => array('user:email'),
-            'user_endpoint' => 'https://api.github.com/user'
+            'user_endpoint' => 'https://api.github.com/user',
+            'class' => 'OAuth\OAuth2\Service\GitHub'
         )
     )
 ));
