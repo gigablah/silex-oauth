@@ -99,12 +99,22 @@ class OAuthServiceRegistry
             unset($this->config[$service]['class']);
         }
 
-        return $this->oauthServiceFactory->createService(
+        $serviceInstance = $this->oauthServiceFactory->createService(
             $service,
             $credentials,
             $this->oauthStorage,
             $scope,
             $uri
         );
+        
+        switch($service) {
+            case 'google':
+                if (isset($this->config[$service]['access_type'])) {
+                    $serviceInstance->setAccessType($this->config[$service]['access_type']);
+                }
+                break;
+        }
+        
+        return $serviceInstance;
     }
 }
