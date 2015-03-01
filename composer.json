@@ -1,5 +1,5 @@
 {
-    "name": "gigablah/silex-oauth",
+    "name": "hectorbenitez/silex-oauth",
     "description": "Silex OAuth Authentication Provider",
     "keywords": ["silex", "oauth"],
     "homepage": "https://github.com/gigablah/silex-oauth",
@@ -9,6 +9,10 @@
         {
             "name": "Chris Heng",
             "email": "bigblah@gmail.com"
+        },
+        {
+            "name": "Hector Benitez",
+            "email": "hector.benitez.fletes@gmail.com"
         }
     ],
     "require": {
