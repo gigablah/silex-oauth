@@ -2,8 +2,8 @@
 
 namespace Gigablah\Silex\OAuth\Security\Authentication\Token;
 
-use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use OAuth\Common\Token\TokenInterface as AccessTokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
 /**
  * Token for OAuth Authentication responses.
@@ -12,6 +12,7 @@ use OAuth\Common\Token\TokenInterface as AccessTokenInterface;
  */
 class OAuthToken extends AbstractToken implements OAuthTokenInterface
 {
+
     protected $service;
     protected $uid;
     protected $email;
@@ -24,7 +25,7 @@ class OAuthToken extends AbstractToken implements OAuthTokenInterface
      * @param string $providerKey
      * @param array  $roles
      */
-    public function __construct($providerKey, array $roles = array())
+    public function __construct($providerKey, $roles = array())
     {
         if (empty($providerKey)) {
             throw new \InvalidArgumentException('$providerKey must not be empty.');
