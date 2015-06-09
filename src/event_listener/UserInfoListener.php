@@ -1,8 +1,8 @@
 <?php
 
-namespace atphp\silex\oauth\EventListener;
+namespace atphp\silex\oauth\event_listener;
 
-use atphp\silex\oauth\Event\FilterTokenEvent;
+use atphp\silex\oauth\event\FilterTokenEvent;
 use atphp\silex\oauth\OAuthEvents;
 use atphp\silex\oauth\OAuthServiceRegistry;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;

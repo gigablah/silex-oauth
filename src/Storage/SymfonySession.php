@@ -1,6 +1,6 @@
 <?php
 
-namespace atphp\silex\oauth\Storage;
+namespace atphp\silex\oauth\storage;
 
 use OAuth\Common\Storage\Exception\AuthorizationStateNotFoundException;
 use OAuth\Common\Storage\Exception\TokenNotFoundException;

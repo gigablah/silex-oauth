@@ -1,6 +1,6 @@
 <?php
 
-namespace atphp\silex\oauth\Security\User;
+namespace atphp\silex\oauth\security\User;
 
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 

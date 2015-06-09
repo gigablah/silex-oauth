@@ -1,10 +1,10 @@
 <?php
 
-namespace atphp\silex\oauth\EventListener;
+namespace atphp\silex\oauth\event_listener;
 
-use atphp\silex\oauth\Event\GetUserForTokenEvent;
+use atphp\silex\oauth\event\GetUserForTokenEvent;
 use atphp\silex\oauth\OAuthEvents;
-use atphp\silex\oauth\Security\User\Provider\OAuthUserProviderInterface;
+use atphp\silex\oauth\security\User\Provider\OAuthUserProviderInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace atphp\silex\oauth\Security\Authentication\Token;
+namespace atphp\silex\oauth\security\authentication\token;
 
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 

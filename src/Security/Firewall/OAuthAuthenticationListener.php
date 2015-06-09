@@ -1,11 +1,11 @@
 <?php
 
-namespace atphp\silex\oauth\Security\Firewall;
+namespace atphp\silex\oauth\security\firewall;
 
-use atphp\silex\oauth\Event\FilterTokenEvent;
+use atphp\silex\oauth\event\FilterTokenEvent;
 use atphp\silex\oauth\OAuthEvents;
 use atphp\silex\oauth\OAuthServiceRegistry;
-use atphp\silex\oauth\Security\Authentication\Token\OAuthToken;
+use atphp\silex\oauth\security\authentication\token\OAuthToken;
 use OAuth\Common\Storage\Exception\StorageException;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 use OAuth\OAuth2\Service\GitHub;

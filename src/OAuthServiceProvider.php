@@ -2,11 +2,11 @@
 
 namespace atphp\silex\oauth;
 
-use atphp\silex\oauth\EventListener\UserInfoListener;
-use atphp\silex\oauth\EventListener\UserProviderListener;
-use atphp\silex\oauth\Security\Authentication\Provider\OAuthAuthenticationProvider;
-use atphp\silex\oauth\Security\Firewall\OAuthAuthenticationListener;
-use atphp\silex\oauth\Storage\SymfonySession;
+use atphp\silex\oauth\event_listener\UserInfoListener;
+use atphp\silex\oauth\event_listener\UserProviderListener;
+use atphp\silex\oauth\security\authentication\provider\OAuthAuthenticationProvider;
+use atphp\silex\oauth\security\firewall\OAuthAuthenticationListener;
+use atphp\silex\oauth\storage\SymfonySession;
 use OAuth\Common\Http\Client\CurlClient;
 use OAuth\ServiceFactory;
 use Pimple\Container;

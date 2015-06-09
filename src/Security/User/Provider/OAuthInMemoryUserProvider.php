@@ -1,9 +1,9 @@
 <?php
 
-namespace atphp\silex\oauth\Security\User\Provider;
+namespace atphp\silex\oauth\security\User\Provider;
 
-use atphp\silex\oauth\Security\Authentication\Token\OAuthTokenInterface;
-use atphp\silex\oauth\Security\User\StubUser;
+use atphp\silex\oauth\security\authentication\token\OAuthTokenInterface;
+use atphp\silex\oauth\security\User\StubUser;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;

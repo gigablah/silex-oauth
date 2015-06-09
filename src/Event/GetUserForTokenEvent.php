@@ -1,8 +1,8 @@
 <?php
 
-namespace atphp\silex\oauth\Event;
+namespace atphp\silex\oauth\event;
 
-use atphp\silex\oauth\Security\Authentication\Token\OAuthTokenInterface;
+use atphp\silex\oauth\security\authentication\token\OAuthTokenInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
