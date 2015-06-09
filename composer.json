@@ -9,6 +9,7 @@
     { "name": "Chris Heng", "email": "bigblah@gmail.com" }
   ],
   "require": {
+    "php": ">=5.5",
     "lusitanian/oauth": ">=0.2.3",
     "pimple/pimple": "~3.0"
   },
