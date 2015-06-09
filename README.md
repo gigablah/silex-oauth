@@ -36,7 +36,7 @@ Usage
 First, you need to register the service provider and configure it with the application keys, secrets, scopes and user API endpoints for each OAuth provider you wish to support. Some examples are shown below:
 
 ```php
-$app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
+$app->register(new atphp\silex\oauth\OAuthServiceProvider(), array(
     'oauth.services' => array(
         'facebook' => array(
             'key' => FACEBOOK_API_KEY,
@@ -183,7 +183,7 @@ Custom Services
 You can register your own services or override existing ones by manually specifying the class to instantiate:
 
 ```php
-$app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
+$app->register(new atphp\silex\oauth\OAuthServiceProvider(), array(
     'oauth.services' => array(
         'my_service' => array(
             'class' => 'My\\Custom\\Namespace\\MyOAuthService',
