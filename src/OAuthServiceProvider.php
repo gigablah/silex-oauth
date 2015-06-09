@@ -1,12 +1,12 @@
 <?php
 
-namespace Gigablah\Silex\OAuth;
+namespace atphp\silex\oauth;
 
-use Gigablah\Silex\OAuth\EventListener\UserInfoListener;
-use Gigablah\Silex\OAuth\EventListener\UserProviderListener;
-use Gigablah\Silex\OAuth\Security\Authentication\Provider\OAuthAuthenticationProvider;
-use Gigablah\Silex\OAuth\Security\Firewall\OAuthAuthenticationListener;
-use Gigablah\Silex\OAuth\Storage\SymfonySession;
+use atphp\silex\oauth\EventListener\UserInfoListener;
+use atphp\silex\oauth\EventListener\UserProviderListener;
+use atphp\silex\oauth\Security\Authentication\Provider\OAuthAuthenticationProvider;
+use atphp\silex\oauth\Security\Firewall\OAuthAuthenticationListener;
+use atphp\silex\oauth\Storage\SymfonySession;
 use OAuth\Common\Http\Client\CurlClient;
 use OAuth\ServiceFactory;
 use Pimple\Container;

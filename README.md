@@ -1,9 +1,11 @@
 OAuthServiceProvider
 ====================
 
-The OAuthServiceProvider integrates the [lusitanian/oauth][1] library with the [Security][2] component to provide social logins for the [Silex][3] microframework.
+The OAuthServiceProvider integrates the [lusitanian/oauth][1] library with the [Security][2] component to provide social
+logins for the [Silex][3] microframework.
 
-This library only provides the authentication system. You would have to supply your own user provider, or you can make use of the in-memory provider for testing.
+This library only provides the authentication system. You would have to supply your own user provider, or you can make 
+use of the in-memory provider for testing.
 
 Features
 --------
@@ -15,7 +17,7 @@ Features
 Installation
 ------------
 
-Use [Composer][4] to install the gigablah/silex-oauth library by adding it to your `composer.json`.
+Use [Composer][4] to install the atphp/silex-oauth library by adding it to your `composer.json`.
 
 ```json
 {
@@ -23,7 +25,7 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
         "silex/silex": "~1.0",
         "symfony/form": "~2.3",
         "symfony/security": "~2.3",
-        "gigablah/silex-oauth": "~0.1"
+        "atphp/silex-oauth": "~2.0"
     }
 }
 ```

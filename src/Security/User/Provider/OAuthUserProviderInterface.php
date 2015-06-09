@@ -1,8 +1,8 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\User\Provider;
+namespace atphp\silex\oauth\Security\User\Provider;
 
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
+use atphp\silex\oauth\Security\Authentication\Token\OAuthTokenInterface;
 
 /**
  * OAuth user provider interface.
@@ -11,6 +11,7 @@ use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
  */
 interface OAuthUserProviderInterface
 {
+
     /**
      * Loads a user based on OAuth credentials.
      *

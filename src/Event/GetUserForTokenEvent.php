@@ -1,8 +1,8 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Event;
+namespace atphp\silex\oauth\Event;
 
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
+use atphp\silex\oauth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -14,6 +14,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
  */
 class GetUserForTokenEvent extends Event
 {
+
     private $token;
     private $user;
     private $userProvider;

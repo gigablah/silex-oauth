@@ -1,6 +1,6 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\Authentication\Token;
+namespace atphp\silex\oauth\Security\Authentication\Token;
 
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
@@ -11,6 +11,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
  */
 interface OAuthTokenInterface extends TokenInterface
 {
+
     /**
      * Returns the OAuth service name.
      *

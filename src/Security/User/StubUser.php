@@ -1,6 +1,6 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\User;
+namespace atphp\silex\oauth\Security\User;
 
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 
@@ -11,6 +11,7 @@ use Symfony\Component\Security\Core\User\AdvancedUserInterface;
  */
 class StubUser implements AdvancedUserInterface
 {
+
     private $username;
     private $password;
     private $email;

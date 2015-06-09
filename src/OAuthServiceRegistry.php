@@ -1,13 +1,13 @@
 <?php
 
-namespace Gigablah\Silex\OAuth;
+namespace atphp\silex\oauth;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use OAuth\ServiceFactory;
 use OAuth\Common\Consumer\Credentials;
 use OAuth\Common\Http\Uri\Uri;
 use OAuth\Common\Service\ServiceInterface;
 use OAuth\Common\Storage\TokenStorageInterface;
+use OAuth\ServiceFactory;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Registry for instantiating and memoizing OAuth service providers.
@@ -16,6 +16,7 @@ use OAuth\Common\Storage\TokenStorageInterface;
  */
 class OAuthServiceRegistry
 {
+
     protected $services;
     protected $config;
     protected $options;

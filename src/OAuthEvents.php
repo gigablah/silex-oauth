@@ -1,6 +1,6 @@
 <?php
 
-namespace Gigablah\Silex\OAuth;
+namespace atphp\silex\oauth;
 
 /**
  * Events thrown by the OAuth authentication process.
@@ -9,6 +9,7 @@ namespace Gigablah\Silex\OAuth;
  */
 final class OAuthEvents
 {
+
     /**
      * The TOKEN event occurs when the security token is created.
      *

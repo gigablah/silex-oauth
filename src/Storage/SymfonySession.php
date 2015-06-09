@@ -1,15 +1,16 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Storage;
+namespace atphp\silex\oauth\Storage;
 
-use OAuth\Common\Storage\TokenStorageInterface;
-use OAuth\Common\Storage\Exception\TokenNotFoundException;
 use OAuth\Common\Storage\Exception\AuthorizationStateNotFoundException;
+use OAuth\Common\Storage\Exception\TokenNotFoundException;
+use OAuth\Common\Storage\TokenStorageInterface;
 use OAuth\Common\Token\TokenInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class SymfonySession implements TokenStorageInterface
 {
+
     private $session;
     private $sessionVariableName;
     private $stateVariableName;
@@ -27,7 +28,8 @@ class SymfonySession implements TokenStorageInterface
         $startSession = true,
         $sessionVariableName = 'lusitanian_oauth_token',
         $stateVariableName = 'lusitanian_oauth_state'
-    ) {
+    )
+    {
         $this->session = $session;
         $this->sessionVariableName = $sessionVariableName;
         $this->stateVariableName = $stateVariableName;
@@ -79,8 +81,8 @@ class SymfonySession implements TokenStorageInterface
         $tokens = $this->session->get($this->sessionVariableName);
 
         return is_array($tokens)
-            && isset($tokens[$service])
-            && $tokens[$service] instanceof TokenInterface;
+        && isset($tokens[$service])
+        && $tokens[$service] instanceof TokenInterface;
     }
 
     /**

@@ -1,8 +1,8 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Event;
+namespace atphp\silex\oauth\Event;
 
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
+use atphp\silex\oauth\Security\Authentication\Token\OAuthTokenInterface;
 use Symfony\Component\EventDispatcher\Event;
 
 /**

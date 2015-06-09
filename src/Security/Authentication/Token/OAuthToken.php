@@ -1,6 +1,6 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\Authentication\Token;
+namespace atphp\silex\oauth\Security\Authentication\Token;
 
 use OAuth\Common\Token\TokenInterface as AccessTokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
