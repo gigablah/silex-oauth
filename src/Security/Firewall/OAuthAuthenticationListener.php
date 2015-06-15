@@ -8,14 +8,13 @@ use atphp\silex\oauth\OAuthServiceRegistry;
 use atphp\silex\oauth\security\authentication\token\OAuthToken;
 use OAuth\Common\Storage\Exception\StorageException;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
-use OAuth\OAuth2\Service\GitHub;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
@@ -39,7 +38,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
     /**
      * Constructor.
      *
-     * @param SecurityContextInterface               $securityContext
+     * @param TokenStorageInterface                  $tokenStorage
      * @param AuthenticationManagerInterface         $authenticationManager
      * @param SessionAuthenticationStrategyInterface $sessionStrategy
      * @param HttpUtils                              $httpUtils
@@ -52,9 +51,9 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      * @param EventDispatcherInterface               $dispatcher
      * @param CsrfTokenManagerInterface              $csrfProvider
      */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfTokenManagerInterface $csrfProvider = null)
+    public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfTokenManagerInterface $csrfProvider = null)
     {
-        parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
+        parent::__construct($tokenStorage, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
             'login_route'    => '_auth_service',
             'check_route'    => '_auth_service_check',
             'csrf_parameter' => '_csrf_token',
