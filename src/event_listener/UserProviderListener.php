@@ -1,10 +1,10 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\EventListener;
+namespace atphp\silex\oauth\event_listener;
 
-use Gigablah\Silex\OAuth\OAuthEvents;
-use Gigablah\Silex\OAuth\Event\GetUserForTokenEvent;
-use Gigablah\Silex\OAuth\Security\User\Provider\OAuthUserProviderInterface;
+use atphp\silex\oauth\event\GetUserForTokenEvent;
+use atphp\silex\oauth\OAuthEvents;
+use atphp\silex\oauth\security\User\Provider\OAuthUserProviderInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -14,6 +14,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class UserProviderListener implements EventSubscriberInterface
 {
+
     /**
      * Populate the security token with a user from the local database.
      *

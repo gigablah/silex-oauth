@@ -1,10 +1,10 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\EventListener;
+namespace atphp\silex\oauth\event_listener;
 
-use Gigablah\Silex\OAuth\OAuthServiceRegistry;
-use Gigablah\Silex\OAuth\OAuthEvents;
-use Gigablah\Silex\OAuth\Event\FilterTokenEvent;
+use atphp\silex\oauth\event\FilterTokenEvent;
+use atphp\silex\oauth\OAuthEvents;
+use atphp\silex\oauth\OAuthServiceRegistry;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -14,6 +14,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class UserInfoListener implements EventSubscriberInterface
 {
+
     private $registry;
     private $config;
 
@@ -40,7 +41,7 @@ class UserInfoListener implements EventSubscriberInterface
         $service = $token->getService();
         $oauthService = $this->registry->getService($service);
 
-        $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService)?$oauthService->service():OAuthServiceRegistry::getServiceName($oauthService);
+        $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService) ? $oauthService->service() : OAuthServiceRegistry::getServiceName($oauthService);
         $accessToken = $oauthService->getStorage()->retrieveAccessToken($serviceName);
         $token->setAccessToken($accessToken);
 
@@ -50,8 +51,8 @@ class UserInfoListener implements EventSubscriberInterface
 
         $userInfo = array();
         $fieldMap = array(
-            'id' => array('id'),
-            'name' => array('name', 'username', 'screen_name', 'login'),
+            'id'    => array('id'),
+            'name'  => array('name', 'username', 'screen_name', 'login'),
             'email' => array('email', function ($data, $provider) {
                 if ('twitter' === $provider) {
                     return $data['screen_name'] . '@twitter.com';

@@ -1,27 +1,27 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\Firewall;
+namespace atphp\silex\oauth\security\firewall;
 
-use Gigablah\Silex\OAuth\OAuthServiceRegistry;
-use Gigablah\Silex\OAuth\OAuthEvents;
-use Gigablah\Silex\OAuth\Event\FilterTokenEvent;
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthToken;
-use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
+use atphp\silex\oauth\event\FilterTokenEvent;
+use atphp\silex\oauth\OAuthEvents;
+use atphp\silex\oauth\OAuthServiceRegistry;
+use atphp\silex\oauth\security\authentication\token\OAuthToken;
+use OAuth\Common\Storage\Exception\StorageException;
+use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
-use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
-use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
-use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
-use Symfony\Component\Security\Core\SecurityContextInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\LoggerInterface;
-use OAuth\Common\Storage\Exception\StorageException;
-use OAuth\Common\Service\ServiceInterface as OAuthServiceInterface;
-use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
+use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
+use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 
 /**
  * Authentication listener handling OAuth Authentication responses.
@@ -30,15 +30,15 @@ use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
  */
 class OAuthAuthenticationListener extends AbstractAuthenticationListener
 {
+
+    private   $dispatcher;
     protected $oauthServiceFactory;
     protected $csrfProvider;
-
-    private $dispatcher;
 
     /**
      * Constructor.
      *
-     * @param SecurityContextInterface               $securityContext
+     * @param TokenStorageInterface                  $tokenStorage
      * @param AuthenticationManagerInterface         $authenticationManager
      * @param SessionAuthenticationStrategyInterface $sessionStrategy
      * @param HttpUtils                              $httpUtils
@@ -49,20 +49,20 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      * @param array                                  $options
      * @param LoggerInterface                        $logger
      * @param EventDispatcherInterface               $dispatcher
-     * @param CsrfProviderInterface                  $csrfProvider
+     * @param CsrfTokenManagerInterface              $csrfProvider
      */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
+    public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfTokenManagerInterface $csrfProvider = null)
     {
-        parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
+        parent::__construct($tokenStorage, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
             'login_route'    => '_auth_service',
             'check_route'    => '_auth_service_check',
             'csrf_parameter' => '_csrf_token',
             'intention'      => 'oauth',
             'post_only'      => false,
         ), $options), $logger, $dispatcher);
-        $this->registry     = $registry;
+        $this->registry = $registry;
         $this->csrfProvider = $csrfProvider;
-        $this->dispatcher   = $dispatcher;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -106,11 +106,11 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 
                 return null;
             }
+
             // CSRF checking only upon login
             if (null !== $this->csrfProvider) {
                 $csrfToken = $request->get($this->options['csrf_parameter'], null, true);
-
-                if (false === $this->csrfProvider->isCsrfTokenValid($this->options['intention'], $csrfToken)) {
+                if (false === $this->csrfProvider->isTokenValid(new CsrfToken('oauth', $csrfToken))) {
                     throw new InvalidCsrfTokenException('Invalid CSRF token.');
                 }
             }
@@ -135,9 +135,10 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 
             if ($oauthService instanceof OAuth1ServiceInterface) {
                 try {
-                    $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService)?$oauthService->service():OAuthServiceRegistry::getServiceName($oauthService);
+                    $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService) ? $oauthService->service() : OAuthServiceRegistry::getServiceName($oauthService);
                     $token = $oauthService->getStorage()->retrieveAccessToken($serviceName);
-                } catch (StorageException $exception) {
+                }
+                catch (StorageException $exception) {
                     throw new AuthenticationException('Could not retrieve access token.', null, $exception);
                 }
 
@@ -150,7 +151,8 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                     $request->query->get('oauth_verifier'),
                     $token->getRequestTokenSecret()
                 );
-            } else {
+            }
+            else {
                 if (!$request->query->has('code')) {
                     throw new AuthenticationException('Token parameters missing.');
                 }

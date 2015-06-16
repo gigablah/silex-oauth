@@ -1,17 +1,17 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\Authentication\Provider;
+namespace atphp\silex\oauth\security\authentication\provider;
 
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthToken;
-use Gigablah\Silex\OAuth\OAuthEvents;
-use Gigablah\Silex\OAuth\Event\GetUserForTokenEvent;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Core\User\UserCheckerInterface;
-use Symfony\Component\Security\Core\Exception\BadCredentialsException;
+use atphp\silex\oauth\event\GetUserForTokenEvent;
+use atphp\silex\oauth\OAuthEvents;
+use atphp\silex\oauth\security\authentication\token\OAuthToken;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Security\Core\Exception\BadCredentialsException;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * Authentication provider handling OAuth Authentication responses.
@@ -20,6 +20,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 class OAuthAuthenticationProvider implements AuthenticationProviderInterface
 {
+
     private $dispatcher;
     private $userProvider;
     private $userChecker;
@@ -36,9 +37,9 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
     public function __construct(UserProviderInterface $userProvider, UserCheckerInterface $userChecker, $providerKey, EventDispatcherInterface $dispatcher = null)
     {
         $this->userProvider = $userProvider;
-        $this->userChecker  = $userChecker;
-        $this->providerKey  = $providerKey;
-        $this->dispatcher   = $dispatcher;
+        $this->userChecker = $userChecker;
+        $this->providerKey = $providerKey;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -56,7 +57,6 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
             $event = new GetUserForTokenEvent($token);
             $event->setUserProvider($this->userProvider);
             $this->dispatcher->dispatch(OAuthEvents::USER, $event);
-
             $user = $event->getToken()->getUser();
         }
 
@@ -66,7 +66,7 @@ class OAuthAuthenticationProvider implements AuthenticationProviderInterface
 
         $this->userChecker->checkPostAuth($user);
 
-        $authenticatedToken = new OAuthToken($this->providerKey, $user->getRoles());
+        $authenticatedToken = new OAuthToken($this->providerKey, $user->getRoles()->toArray());
         $authenticatedToken->setAccessToken($token->getAccessToken());
         $authenticatedToken->setService($token->getService());
         $authenticatedToken->setUid($token->getUid());

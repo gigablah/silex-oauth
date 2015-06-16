@@ -1,22 +1,21 @@
 {
-    "name": "gigablah/silex-oauth",
-    "description": "Silex OAuth Authentication Provider",
-    "keywords": ["silex", "oauth"],
-    "homepage": "https://github.com/gigablah/silex-oauth",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Chris Heng",
-            "email": "bigblah@gmail.com"
-        }
-    ],
-    "require": {
-        "lusitanian/oauth": ">=0.2.3"
-    },
-    "autoload": {
-        "psr-0": {
-            "Gigablah\\Silex\\OAuth": ["src/"]
-        }
+  "name": "atphp/silex-oauth",
+  "description": "Silex OAuth Authentication Provider",
+  "keywords": ["silex", "oauth"],
+  "homepage": "https://github.com/atphp/silex-oauth",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    { "name": "Chris Heng", "email": "bigblah@gmail.com" }
+  ],
+  "require": {
+    "php": ">=5.5",
+    "lusitanian/oauth": ">=0.2.3",
+    "pimple/pimple": "~3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "atphp\\silex\\oauth\\": ["src/"]
     }
+  }
 }

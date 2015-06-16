@@ -1,12 +1,12 @@
 <?php
 
-namespace Gigablah\Silex\OAuth\Security\User\Provider;
+namespace atphp\silex\oauth\security\User\Provider;
 
-use Gigablah\Silex\OAuth\Security\User\StubUser;
-use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthTokenInterface;
+use atphp\silex\oauth\security\authentication\token\OAuthTokenInterface;
+use atphp\silex\oauth\security\User\StubUser;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * OAuth in-memory stub user provider.
@@ -15,6 +15,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class OAuthInMemoryUserProvider implements UserProviderInterface, OAuthUserProviderInterface
 {
+
     private $users;
     private $credentials;
 
@@ -54,7 +55,8 @@ class OAuthInMemoryUserProvider implements UserProviderInterface, OAuthUserProvi
     {
         if (isset($this->users[strtolower($username)])) {
             $user = $this->users[strtolower($username)];
-        } else {
+        }
+        else {
             $user = new StubUser($username, '', $username . '@example.org', array('ROLE_USER'), true, true, true, true);
             $this->createUser($user);
         }
