@@ -20,10 +20,10 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
 ```json
 {
     "require": {
-        "silex/silex": "~1.0",
-        "symfony/form": "~2.3",
-        "symfony/security": "~2.3",
-        "gigablah/silex-oauth": "~1.0"
+        "silex/silex": ">=1.0 <1.3",
+        "symfony/form": "~2.3.0",
+        "symfony/security": "~2.3.0",
+        "gigablah/silex-oauth": "~1.0.0"
     }
 }
 ```
