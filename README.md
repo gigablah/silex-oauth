@@ -23,7 +23,7 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
         "silex/silex": "~1.0",
         "symfony/form": "~2.3",
         "symfony/security": "~2.3",
-        "gigablah/silex-oauth": "~0.1"
+        "gigablah/silex-oauth": "~1.0"
     }
 }
 ```
@@ -34,21 +34,43 @@ Usage
 First, you need to register the service provider and configure it with the application keys, secrets, scopes and user API endpoints for each OAuth provider you wish to support. Some examples are shown below:
 
 ```php
+ini_set('display_errors', 1);
+error_reporting(-1);
+
+require_once __DIR__.'/vendor/autoload.php';
+
+define('FACEBOOK_API_KEY',    '');
+define('FACEBOOK_API_SECRET', '');
+define('TWITTER_API_KEY',     '');
+define('TWITTER_API_SECRET',  '');
+define('GOOGLE_API_KEY',      '');
+define('GOOGLE_API_SECRET',   '');
+define('GITHUB_API_KEY',      '');
+define('GITHUB_API_SECRET',   '');
+
+$app = new Silex\Application();
+$app['debug'] = true;
+
 $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
     'oauth.services' => array(
-        'facebook' => array(
+        'Facebook' => array(
             'key' => FACEBOOK_API_KEY,
             'secret' => FACEBOOK_API_SECRET,
             'scope' => array('email'),
             'user_endpoint' => 'https://graph.facebook.com/me'
         ),
-        'twitter' => array(
+        'Twitter' => array(
             'key' => TWITTER_API_KEY,
             'secret' => TWITTER_API_SECRET,
             'scope' => array(),
-            'user_endpoint' => 'https://api.twitter.com/1.1/account/verify_credentials.json'
+            'user_endpoint' => 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+            'user_callback' => function ($token, $userInfo, $service) {
+                $token->setUser($userInfo['name']);
+                $token->setEmail($userInfo['email']);
+                $token->setUid($userInfo['id']);
+            }
         ),
-        'google' => array(
+        'Google' => array(
             'key' => GOOGLE_API_KEY,
             'secret' => GOOGLE_API_SECRET,
             'scope' => array(
@@ -57,12 +79,11 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             ),
             'user_endpoint' => 'https://www.googleapis.com/oauth2/v1/userinfo'
         ),
-        'github' => array(
+        'GitHub' => array(
             'key' => GITHUB_API_KEY,
             'secret' => GITHUB_API_SECRET,
             'scope' => array('user:email'),
-            'user_endpoint' => 'https://api.github.com/user',
-            'class' => 'OAuth\OAuth2\Service\GitHub'
+            'user_endpoint' => 'https://api.github.com/user'
         )
     )
 ));
@@ -79,8 +100,8 @@ $app->register(new Silex\Provider\FormServiceProvider());
 
 // Provides session storage
 $app->register(new Silex\Provider\SessionServiceProvider(), array(
-    'session.storage.save_path' => '/path/to/sessions'
-))
+    'session.storage.save_path' => '/tmp'
+));
 
 $app->register(new Silex\Provider\SecurityServiceProvider(), array(
     'security.firewalls' => array(
@@ -98,6 +119,8 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
                 'logout_path' => '/logout',
                 'with_csrf' => true
             ),
+            // OAuthInMemoryUserProvider returns a StubUser and is intended only for testing.
+            // Replace this with your own UserProvider and User class.
             'users' => new Gigablah\Silex\OAuth\Security\User\Provider\OAuthInMemoryUserProvider()
         )
     ),
@@ -116,7 +139,7 @@ Finally, you can provide a login/logout interface. This example assumes usage of
 ```php
 // Provides Twig template engine
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path' => '/path/to/templates'
+    'twig.path' => __DIR__.'/views'
 ));
 
 $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($app) {
@@ -128,19 +151,15 @@ $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($
     }
 });
 
-$app->get('/login', function () use ($app) {
+$app->get('/login', function (Symfony\Component\HttpFoundation\Request $request) use ($app) {
     $services = array_keys($app['oauth.services']);
 
     return $app['twig']->render('index.twig', array(
-        'login_paths' => array_map(function ($service) use ($app) {
-            return $app['url_generator']->generate('_auth_service', array(
-                'service' => $service,
-                '_csrf_token' => $app['form.csrf_provider']->generateCsrfToken('oauth')
-            ));
-        }, array_combine($services, $services)),
+        'login_paths' => $app['oauth.login_paths'],
         'logout_path' => $app['url_generator']->generate('logout', array(
             '_csrf_token' => $app['form.csrf_provider']->generateCsrfToken('logout')
-        ))
+        )),
+        'error' => $app['security.last_error']($request)
     ));
 });
 
@@ -151,6 +170,9 @@ The template itself:
 
 ```
 <div>
+  {% if error %}
+  <p>{{ error }}</p>
+  {% endif %}
   {% if app.user %}
     <p>Hello {{ app.user.username }}! Your email is {{ app.user.email }}</p>
     <a href="{{ logout_path }}">Logout</a>
@@ -188,7 +210,11 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             'key' => MY_API_KEY,
             'secret' => MY_API_SECRET,
             'scope' => array(),
-            'user_endpoint' => 'https://my.domain/userinfo'
+            'user_endpoint' => 'https://my.domain/userinfo',
+            'user_callback' => function ($token, $userInfo, $service) {
+                ...
+            }
+        }
         ),
         // ...
     )

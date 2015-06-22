@@ -22,7 +22,7 @@ class OAuthInMemoryUserProvider implements UserProviderInterface, OAuthUserProvi
      * Constructor.
      *
      * @param array $users       An array of users
-     * @param array $credentials A map of usernames with
+     * @param array $credentials A map of usernames with service credentials (service name and uid)
      */
     public function __construct(array $users = array(), array $credentials = array())
     {

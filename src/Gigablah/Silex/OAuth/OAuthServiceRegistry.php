@@ -7,6 +7,7 @@ use OAuth\ServiceFactory;
 use OAuth\Common\Consumer\Credentials;
 use OAuth\Common\Http\Uri\Uri;
 use OAuth\Common\Service\ServiceInterface;
+use OAuth\Common\Service\AbstractService;
 use OAuth\Common\Storage\TokenStorageInterface;
 
 /**
@@ -22,6 +23,7 @@ class OAuthServiceRegistry
     protected $oauthServiceFactory;
     protected $oauthStorage;
     protected $urlGenerator;
+    protected $serviceMap;
 
     /**
      * Constructor.
@@ -40,6 +42,7 @@ class OAuthServiceRegistry
         $this->oauthServiceFactory = $oauthServiceFactory;
         $this->oauthStorage = $oauthStorage;
         $this->urlGenerator = $urlGenerator;
+        $this->serviceMap = array_flip(array_combine(array_keys($this->config), array_map('strtolower', array_keys($this->config))));
     }
 
     /**
@@ -51,11 +54,25 @@ class OAuthServiceRegistry
      */
     public function getService($service)
     {
+        $service = $this->mapServiceName($service);
+
         if (isset($this->services[$service])) {
             return $this->services[$service];
         }
 
         return $this->services[$service] = $this->createService($service);
+    }
+
+    /**
+     * Retrieve the original service name.
+     *
+     * @param string $service
+     *
+     * @return string
+     */
+    public function mapServiceName($service)
+    {
+        return $this->serviceMap[strtolower($service)];
     }
 
     /**
@@ -67,6 +84,10 @@ class OAuthServiceRegistry
      */
     public static function getServiceName(ServiceInterface $oauthService)
     {
+        if ($oauthService instanceof AbstractService) {
+            return $oauthService->service();
+        }
+
         return preg_replace('/^.*\\\\/', '', get_class($oauthService));
     }
 
@@ -87,7 +108,7 @@ class OAuthServiceRegistry
             $this->config[$service]['key'],
             $this->config[$service]['secret'],
             $this->urlGenerator->generate($this->options['callback_route'], array(
-                'service' => $service
+                'service' => strtolower($service)
             ), true)
         );
 

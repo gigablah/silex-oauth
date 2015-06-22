@@ -58,6 +58,17 @@ class OAuthServiceProvider implements ServiceProviderInterface
             );
         });
 
+        $app['oauth.login_paths'] = $app->share(function ($app) {
+            $services = array_map('strtolower', array_keys($app['oauth.services']));
+            $token = isset($app['form.csrf_provider']) ? $app['form.csrf_provider']->generateCsrfToken('oauth') : null;
+            return array_map(function ($service) use ($app, $token) {
+                return $app['url_generator']->generate($app['oauth.login_route'], array(
+                    'service' => $service,
+                    '_csrf_token' => $token
+                ));
+            }, array_combine($services, $services));
+        });
+
         $app['oauth.user_info_listener'] = $app->share(function ($app) {
             return new UserInfoListener($app['oauth'], $app['oauth.services']);
         });

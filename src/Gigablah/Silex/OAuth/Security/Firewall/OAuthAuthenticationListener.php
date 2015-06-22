@@ -135,7 +135,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 
             if ($oauthService instanceof OAuth1ServiceInterface) {
                 try {
-                    $serviceName = ($oauthService instanceof \OAuth\Common\Service\AbstractService)?$oauthService->service():OAuthServiceRegistry::getServiceName($oauthService);
+                    $serviceName = OAuthServiceRegistry::getServiceName($oauthService);
                     $token = $oauthService->getStorage()->retrieveAccessToken($serviceName);
                 } catch (StorageException $exception) {
                     throw new AuthenticationException('Could not retrieve access token.', null, $exception);
@@ -168,7 +168,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
         }
 
         $authToken = new OAuthToken($this->providerKey);
-        $authToken->setService($service);
+        $authToken->setService($this->registry->mapServiceName($service));
 
         if (null !== $this->dispatcher) {
             $this->dispatcher->dispatch(OAuthEvents::TOKEN, new FilterTokenEvent($authToken));
