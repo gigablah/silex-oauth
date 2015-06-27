@@ -48,6 +48,19 @@ class OAuthServiceProvider implements ServiceProviderInterface
             return $app['url_generator'];
         });
 
+        $app['oauth.csrf_token'] = $app->protect(function ($intention) use ($app) {
+            if (!isset($app['form.csrf_provider'])) {
+                return null;
+            }
+
+            $tokenManagerInterface = 'Symfony\Component\Security\Csrf\CsrfTokenManagerInterface';
+            if ($app['form.csrf_provider'] instanceof $tokenManagerInterface) {
+                return strval($app['form.csrf_provider']->getToken($intention));
+            }
+
+            return $app['form.csrf_provider']->generateCsrfToken($intention);
+        });
+
         $app['oauth'] = $app->share(function ($app) {
             return new OAuthServiceRegistry(
                 $app['oauth.factory'],
@@ -60,7 +73,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
 
         $app['oauth.login_paths'] = $app->share(function ($app) {
             $services = array_map('strtolower', array_keys($app['oauth.services']));
-            $token = isset($app['form.csrf_provider']) ? $app['form.csrf_provider']->generateCsrfToken('oauth') : null;
+            $token = $app['oauth.csrf_token']('oauth');
             return array_map(function ($service) use ($app, $token) {
                 return $app['url_generator']->generate($app['oauth.login_route'], array(
                     'service' => $service,

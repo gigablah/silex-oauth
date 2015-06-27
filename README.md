@@ -144,7 +144,12 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
 ));
 
 $app->before(function (Symfony\Component\HttpFoundation\Request $request) use ($app) {
-    $token = $app['security']->getToken();
+    if (isset($app['security.token_storage'])) {
+        $token = $app['security.token_storage']->getToken();
+    } else {
+        $token = $app['security']->getToken();
+    }
+
     $app['user'] = null;
 
     if ($token && !$app['security.trust_resolver']->isAnonymous($token)) {
@@ -158,7 +163,7 @@ $app->get('/login', function (Symfony\Component\HttpFoundation\Request $request)
     return $app['twig']->render('index.twig', array(
         'login_paths' => $app['oauth.login_paths'],
         'logout_path' => $app['url_generator']->generate('logout', array(
-            '_csrf_token' => $app['form.csrf_provider']->generateCsrfToken('logout')
+            '_csrf_token' => $app['oauth.csrf_token']('logout')
         )),
         'error' => $app['security.last_error']($request)
     ));

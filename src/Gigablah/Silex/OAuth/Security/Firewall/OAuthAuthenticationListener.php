@@ -6,8 +6,11 @@ use Gigablah\Silex\OAuth\OAuthServiceRegistry;
 use Gigablah\Silex\OAuth\OAuthEvents;
 use Gigablah\Silex\OAuth\Event\FilterTokenEvent;
 use Gigablah\Silex\OAuth\Security\Authentication\Token\OAuthToken;
+use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderAdapter;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
@@ -15,6 +18,7 @@ use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterfa
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -31,7 +35,7 @@ use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 class OAuthAuthenticationListener extends AbstractAuthenticationListener
 {
     protected $oauthServiceFactory;
-    protected $csrfProvider;
+    protected $csrfTokenManager;
 
     private $dispatcher;
 
@@ -49,10 +53,16 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      * @param array                                  $options
      * @param LoggerInterface                        $logger
      * @param EventDispatcherInterface               $dispatcher
-     * @param CsrfProviderInterface                  $csrfProvider
+     * @param mixed                                  $csrfTokenManager
      */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, CsrfProviderInterface $csrfProvider = null)
+    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, $csrfTokenManager = null)
     {
+        if ($csrfTokenManager instanceof CsrfProviderInterface) {
+            $csrfTokenManager = new CsrfProviderAdapter($csrfTokenManager);
+        } elseif (null !== $csrfTokenManager && !$csrfTokenManager instanceof CsrfTokenManagerInterface) {
+            throw new InvalidArgumentException('The CSRF token manager should be an instance of CsrfProviderInterface or CsrfTokenManagerInterface.');
+        }
+
         parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
             'login_route'    => '_auth_service',
             'check_route'    => '_auth_service_check',
@@ -60,9 +70,9 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             'intention'      => 'oauth',
             'post_only'      => false,
         ), $options), $logger, $dispatcher);
-        $this->registry     = $registry;
-        $this->csrfProvider = $csrfProvider;
-        $this->dispatcher   = $dispatcher;
+        $this->registry         = $registry;
+        $this->csrfTokenManager = $csrfTokenManager;
+        $this->dispatcher       = $dispatcher;
     }
 
     /**
@@ -107,10 +117,10 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                 return null;
             }
             // CSRF checking only upon login
-            if (null !== $this->csrfProvider) {
+            if (null !== $this->csrfTokenManager) {
                 $csrfToken = $request->get($this->options['csrf_parameter'], null, true);
 
-                if (false === $this->csrfProvider->isCsrfTokenValid($this->options['intention'], $csrfToken)) {
+                if (false === $this->csrfTokenManager->isTokenValid(new CsrfToken($this->options['intention'], $csrfToken))) {
                     throw new InvalidCsrfTokenException('Invalid CSRF token.');
                 }
             }
