@@ -20,10 +20,10 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
 ```json
 {
     "require": {
-        "silex/silex": "~1.3,<2.0",
-        "symfony/form": "~2.4,<3.0",
-        "symfony/security": "~2.4,<3.0",
-        "gigablah/silex-oauth": "~1.3"
+        "silex/silex": "~2.0@dev",
+        "symfony/form": "~2.7,<3.0",
+        "symfony/security": "~2.7,<3.0",
+        "gigablah/silex-oauth": "~2.0@dev"
     }
 }
 ```
@@ -93,9 +93,6 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
 Next, register the `oauth` authentication provider in your firewall.
 
 ```php
-// Provides URL generation
-$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
-
 // Provides CSRF token generation
 $app->register(new Silex\Provider\FormServiceProvider());
 

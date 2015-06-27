@@ -1,3 +1,7 @@
+## 2015-06-27 v2.0.x-dev ##
+
+* Compatibility with Silex 2.0@dev, Pimple 3.0 and Symfony 2.7+
+
 ## 2015-06-27 v1.3.0 ##
 
 * Compatibility with Silex 1.3 and Symfony 2.4+

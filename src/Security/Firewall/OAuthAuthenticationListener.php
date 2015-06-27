@@ -17,10 +17,10 @@ use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use OAuth\Common\Storage\Exception\StorageException;
@@ -42,7 +42,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
     /**
      * Constructor.
      *
-     * @param SecurityContextInterface               $securityContext
+     * @param TokenStorageInterface                  $tokenStorage
      * @param AuthenticationManagerInterface         $authenticationManager
      * @param SessionAuthenticationStrategyInterface $sessionStrategy
      * @param HttpUtils                              $httpUtils
@@ -55,7 +55,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
      * @param EventDispatcherInterface               $dispatcher
      * @param mixed                                  $csrfTokenManager
      */
-    public function __construct(SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, $csrfTokenManager = null)
+    public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, $providerKey, OAuthServiceRegistry $registry, AuthenticationSuccessHandlerInterface $successHandler = null, AuthenticationFailureHandlerInterface $failureHandler = null, array $options = array(), LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, $csrfTokenManager = null)
     {
         if ($csrfTokenManager instanceof CsrfProviderInterface) {
             $csrfTokenManager = new CsrfProviderAdapter($csrfTokenManager);
@@ -63,7 +63,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             throw new InvalidArgumentException('The CSRF token manager should be an instance of CsrfProviderInterface or CsrfTokenManagerInterface.');
         }
 
-        parent::__construct($securityContext, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
+        parent::__construct($tokenStorage, $authenticationManager, $sessionStrategy, $httpUtils, $providerKey, $successHandler, $failureHandler, array_merge(array(
             'login_route'    => '_auth_service',
             'check_route'    => '_auth_service_check',
             'csrf_parameter' => '_csrf_token',
