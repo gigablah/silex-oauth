@@ -15,8 +15,8 @@
         "lusitanian/oauth": ">=0.2.3"
     },
     "autoload": {
-        "psr-0": {
-            "Gigablah\\Silex\\OAuth": ["src/"]
+        "psr-4": {
+            "Gigablah\\Silex\\OAuth\\": ["src/"]
         }
     }
 }
