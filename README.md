@@ -63,6 +63,7 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             'key' => TWITTER_API_KEY,
             'secret' => TWITTER_API_SECRET,
             'scope' => array(),
+            // Note: permission needs to be obtained from Twitter to use the include_email parameter
             'user_endpoint' => 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
             'user_callback' => function ($token, $userInfo, $service) {
                 $token->setUser($userInfo['name']);
@@ -214,7 +215,6 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             'user_callback' => function ($token, $userInfo, $service) {
                 ...
             }
-        }
         ),
         // ...
     )
