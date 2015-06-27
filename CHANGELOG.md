@@ -1,3 +1,8 @@
+## 2015-06-27 v1.3.0 ##
+
+* Compatibility with Silex 1.3 and Symfony 2.4+
+* New convenience function `oauth.csrf_token` for generating a CSRF token.
+
 ## 2015-06-22 v1.0.0 ##
 
 * Introduced the `user_callback` parameter in the `oauth.services` configuration array. This is used to specify a custom callback to populate the user token with user information retrieved from the `user_endpoint`. Note that in the near future this entire mechanism may be replaced with a more robust solution (e.g. a third party library).
