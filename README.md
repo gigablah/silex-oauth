@@ -17,6 +17,10 @@ Installation
 
 Use [Composer][4] to install the gigablah/silex-oauth library by adding it to your `composer.json`.
 
+You should use a version that is compatible with your Silex installation.
+
+### Silex 2.0
+
 ```json
 {
     "require": {
@@ -24,6 +28,32 @@ Use [Composer][4] to install the gigablah/silex-oauth library by adding it to yo
         "symfony/form": "~2.7,<3.0",
         "symfony/security": "~2.7,<3.0",
         "gigablah/silex-oauth": "~2.0@dev"
+    }
+}
+```
+
+### Silex 1.3
+
+```json
+{
+    "require": {
+        "silex/silex": "~1.3,<2.0",
+        "symfony/form": "~2.4,<3.0",
+        "symfony/security": "~2.4,<3.0",
+        "gigablah/silex-oauth": "~1.3"
+    }
+}
+```
+
+### Silex 1.0
+
+```json
+{
+    "require": {
+        "silex/silex": ">=1.0 <1.3",
+        "symfony/form": "~2.3.0",
+        "symfony/security": "~2.3.0",
+        "gigablah/silex-oauth": "~1.0.0"
     }
 }
 ```
