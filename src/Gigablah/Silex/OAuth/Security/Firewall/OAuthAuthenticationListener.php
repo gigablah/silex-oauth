@@ -22,6 +22,7 @@ use Psr\Log\LoggerInterface;
 use OAuth\Common\Storage\Exception\StorageException;
 use OAuth\Common\Service\ServiceInterface as OAuthServiceInterface;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
+use OAuth\OAuth2\Token\StdOAuth2Token;
 
 /**
  * Authentication listener handling OAuth Authentication responses.
@@ -86,6 +87,10 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
             return true;
         }
 
+        if ($this->httpUtils->checkRequestPath($request, $this->options['token_route'])) {
+            return true;
+        }
+
         return false;
     }
 
@@ -126,6 +131,24 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
 
             return $this->httpUtils->createRedirectResponse($request, $authorizationUri->getAbsoluteUri());
         }
+
+	//token
+        if ($this->httpUtils->checkRequestPath($request, $this->options['token_route'])) {
+            if (!$request->query->has('token')) {
+                throw new AuthenticationException('Token parameters missing.');
+            }
+
+	    //sprawdzac tu czy token dziala
+	    
+	    $token = new StdOAuth2Token();
+	    $token->setAccessToken($request->query->get('token'));
+	    $oauthService->getStorage()->storeAccessToken($oauthService->service(), $token);
+
+            return $this->httpUtils->createRedirectResponse(
+                $request,
+                $this->options['check_route']
+            );
+	}
 
         // request access token upon callback
         if ($this->httpUtils->checkRequestPath($request, $this->options['callback_route'])) {

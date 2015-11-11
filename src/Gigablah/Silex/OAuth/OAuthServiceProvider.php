@@ -24,6 +24,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
         $app['oauth.login_route'] = '_auth_service';
         $app['oauth.callback_route'] = '_auth_service_callback';
         $app['oauth.check_route'] = '_auth_service_check';
+        $app['oauth.token_route'] = '_auth_service_token';
 
         $app['oauth.register_routes'] = true;
 
@@ -87,6 +88,7 @@ class OAuthServiceProvider implements ServiceProviderInterface
                 $options['login_route'] = $app['oauth.login_route'];
                 $options['callback_route'] = $app['oauth.callback_route'];
                 $options['check_route'] = $app['oauth.check_route'];
+                $options['token_route'] = $app['oauth.token_route'];
 
                 if ($app['oauth.register_routes']) {
                     $app->match(
@@ -103,6 +105,12 @@ class OAuthServiceProvider implements ServiceProviderInterface
                         isset($options['check_path']) ? $options['check_path'] : '/auth/{service}/check',
                         function () {}
                     )->bind($options['check_route']);
+
+		    if(isset($options['token_path'])) 
+                	$app->get(
+                    	    $options['token_path'],
+                    	    function () {}
+                	)->bind($options['token_route']);
                 }
 
                 if (!isset($app['security.authentication.success_handler.'.$name.'.oauth'])) {
