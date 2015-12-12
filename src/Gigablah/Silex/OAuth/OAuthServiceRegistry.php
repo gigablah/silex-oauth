@@ -104,12 +104,17 @@ class OAuthServiceRegistry
             throw new \InvalidArgumentException(sprintf('OAuth configuration not defined for the "%s" service.', $service));
         }
 
+        $referenceType = true;
+        $urlGeneratorInterface = 'Symfony\Component\Routing\Generator\UrlGeneratorInterface';
+        if (defined(sprintf('%s::ABSOLUTE_URL', $urlGeneratorInterface))) {
+            $referenceType = $urlGeneratorInterface::ABSOLUTE_URL;
+        }
         $credentials = new Credentials(
             $this->config[$service]['key'],
             $this->config[$service]['secret'],
             $this->urlGenerator->generate($this->options['callback_route'], array(
                 'service' => strtolower($service)
-            ), true)
+            ), $referenceType)
         );
 
         $scope = isset($this->config[$service]['scope']) ? $this->config[$service]['scope'] : array();
