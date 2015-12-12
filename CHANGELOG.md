@@ -1,3 +1,7 @@
+## 2015-12-12 ##
+
+* Compatibility with Symfony Routing 3.0
+
 ## 2015-06-27 v2.0.x-dev ##
 
 * Compatibility with Silex 2.0@dev, Pimple 3.0 and Symfony 2.7+
