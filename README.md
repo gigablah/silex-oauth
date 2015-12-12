@@ -10,14 +10,21 @@ Features
 
 * Supports most popular providers such as Facebook, Twitter, Google and GitHub
 * Extensible via event hooks so you can plug in your own listeners and user providers
-* Supports default CSRF protection mechanism
+* Supports optional CSRF protection mechanism
+
+Example
+-------
+
+Check out the [demo application][4] for a code example.
 
 Installation
 ------------
 
-Use [Composer][4] to install the gigablah/silex-oauth library by adding it to your `composer.json`.
+Use [Composer][5] to install the gigablah/silex-oauth library by adding it to your `composer.json`.
 
 You should use a version that is compatible with your Silex installation.
+
+Take note that the versions specified for `symfony/security` (or any other Symfony component) in the examples below are based on compatibility with *Silex*. OAuthServiceProvider itself should be compatible with component versions from 2.3.0 onwards (please open an issue if this is not the case).
 
 ### Silex 2.0
 
@@ -25,7 +32,6 @@ You should use a version that is compatible with your Silex installation.
 {
     "require": {
         "silex/silex": "~2.0@dev",
-        "symfony/form": "~2.7,<3.0",
         "symfony/security": "~2.7,<3.0",
         "gigablah/silex-oauth": "~2.0@dev"
     }
@@ -38,7 +44,6 @@ You should use a version that is compatible with your Silex installation.
 {
     "require": {
         "silex/silex": "~1.3,<2.0",
-        "symfony/form": "~2.4,<3.0",
         "symfony/security": "~2.4,<3.0",
         "gigablah/silex-oauth": "~1.3"
     }
@@ -51,7 +56,6 @@ You should use a version that is compatible with your Silex installation.
 {
     "require": {
         "silex/silex": ">=1.0 <1.3",
-        "symfony/form": "~2.3.0",
         "symfony/security": "~2.3.0",
         "gigablah/silex-oauth": "~1.0.0"
     }
@@ -124,6 +128,7 @@ Next, register the `oauth` authentication provider in your firewall.
 
 ```php
 // Provides CSRF token generation
+// You will have to include symfony/form in your composer.json
 $app->register(new Silex\Provider\FormServiceProvider());
 
 // Provides session storage
@@ -162,7 +167,7 @@ Note that the library assumes the default login, callback and check paths to be 
 
 You will need to configure each of your OAuth providers with the correct absolute `callback_path`. For example, the default callback for Facebook would be `http://your.domain/auth/facebook/callback`.
 
-Finally, you can provide a login/logout interface. This example assumes usage of the [Twig][5] templating engine:
+Finally, you can provide a login/logout interface. This example assumes usage of the [Twig][6] templating engine:
 
 ```php
 // Provides Twig template engine
@@ -261,5 +266,6 @@ Released under the MIT license. See the LICENSE file for details.
 [1]: https://github.com/Lusitanian/PHPoAuthLib
 [2]: http://silex.sensiolabs.org/doc/providers/security.html
 [3]: http://silex.sensiolabs.org
-[4]: http://getcomposer.org
-[5]: http://twig.sensiolabs.org/
+[4]: https://github.com/gigablah/silex-oauth-demo/blob/master/public/index.php
+[5]: http://getcomposer.org
+[6]: http://twig.sensiolabs.org/
