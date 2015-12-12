@@ -1,3 +1,7 @@
+## 2015-12-12 v1.0.1 ##
+
+* Compatibility with Symfony Routing 3.0
+
 ## 2015-06-22 v1.0.0 ##
 
 * Introduced the `user_callback` parameter in the `oauth.services` configuration array. This is used to specify a custom callback to populate the user token with user information retrieved from the `user_endpoint`. Note that in the near future this entire mechanism may be replaced with a more robust solution (e.g. a third party library).
