@@ -23,7 +23,7 @@ use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use OAuth\Common\Storage\Exception\StorageException;
+use OAuth\Common\Exception\Exception as OAuthException;
 use OAuth\Common\Service\ServiceInterface as OAuthServiceInterface;
 use OAuth\OAuth1\Service\ServiceInterface as OAuth1ServiceInterface;
 
@@ -147,7 +147,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                 try {
                     $serviceName = OAuthServiceRegistry::getServiceName($oauthService);
                     $token = $oauthService->getStorage()->retrieveAccessToken($serviceName);
-                } catch (StorageException $exception) {
+                } catch (OauthException $exception) {
                     throw new AuthenticationException('Could not retrieve access token.', null, $exception);
                 }
 
@@ -165,9 +165,13 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                     throw new AuthenticationException('Token parameters missing.');
                 }
 
-                $oauthService->requestAccessToken(
-                    $request->query->get('code')
-                );
+                try {
+                    $oauthService->requestAccessToken(
+                        $request->query->get('code')
+                    );
+                } catch (OauthException $exception) {
+                    throw new AuthenticationException('Could not retrieve access token.', null, $exception);
+                }
             }
 
             // the access token is now stored in the session, redirect back to check_path
