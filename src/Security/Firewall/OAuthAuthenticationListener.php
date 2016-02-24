@@ -147,7 +147,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                 try {
                     $serviceName = OAuthServiceRegistry::getServiceName($oauthService);
                     $token = $oauthService->getStorage()->retrieveAccessToken($serviceName);
-                } catch (OauthException $exception) {
+                } catch (OAuthException $exception) {
                     throw new AuthenticationException('Could not retrieve access token.', null, $exception);
                 }
 
@@ -169,7 +169,7 @@ class OAuthAuthenticationListener extends AbstractAuthenticationListener
                     $oauthService->requestAccessToken(
                         $request->query->get('code')
                     );
-                } catch (OauthException $exception) {
+                } catch (OAuthException $exception) {
                     throw new AuthenticationException('Could not retrieve access token.', null, $exception);
                 }
             }
