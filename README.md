@@ -91,7 +91,7 @@ $app->register(new Gigablah\Silex\OAuth\OAuthServiceProvider(), array(
             'key' => FACEBOOK_API_KEY,
             'secret' => FACEBOOK_API_SECRET,
             'scope' => array('email'),
-            'user_endpoint' => 'https://graph.facebook.com/me'
+            'user_endpoint' => 'https://graph.facebook.com/me?fields=name,email'
         ),
         'Twitter' => array(
             'key' => TWITTER_API_KEY,
