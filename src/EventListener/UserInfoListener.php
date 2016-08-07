@@ -65,7 +65,7 @@ class UserInfoListener implements EventSubscriberInterface
 
     protected function defaultUserCallback($token, $rawUserInfo, $service)
     {
-        if (!is_array($rawUserInfo)) {
+        if (!is_array($rawUserInfo) || isset($rawUserInfo['error'])) {
             return;
         }
 
