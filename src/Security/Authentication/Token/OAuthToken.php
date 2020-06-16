@@ -106,12 +106,12 @@ class OAuthToken extends AbstractToken implements OAuthTokenInterface
 
     public function serialize()
     {
-        return serialize(array($this->service, $this->uid, $this->accessToken, $this->providerKey, parent::serialize()));
+        return serialize(array($this->service, $this->uid, $this->email, $this->accessToken, $this->providerKey, parent::serialize()));
     }
 
     public function unserialize($str)
     {
-        list($this->service, $this->uid, $this->accessToken, $this->providerKey, $parentStr) = unserialize($str);
+        list($this->service, $this->uid, $this->email,  $this->accessToken, $this->providerKey, $parentStr) = unserialize($str);
 
         parent::unserialize($parentStr);
     }
